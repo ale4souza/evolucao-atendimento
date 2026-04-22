@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Relatório de Atendimento — Dinâmico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4f0;color:#1a1916;font-size:14px;line-height:1.6}
+.page{max-width:1100px;margin:0 auto;padding:32px}
+
+.upload-zone{background:#fff;border:2px dashed #ccc;border-radius:16px;padding:48px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:32px}
+.upload-zone:hover,.upload-zone.drag{border-color:#534AB7;background:#EEEDFE}
+.upload-zone input{display:none}
+.upload-icon{width:48px;height:48px;margin:0 auto 16px;background:#534AB7;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.upload-icon svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.upload-zone h2{font-size:17px;font-weight:600;color:#1a1916;margin-bottom:6px}
+.upload-zone p{font-size:13px;color:#6b6860}
+.upload-zone .hint{font-size:11px;color:#aaa;margin-top:8px}
+
+.header-actions{display:flex;align-items:center;gap:10px}
+.btn-action{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;border:none;transition:opacity .15s}
+.btn-trocar{background:#f0ede6;color:#1a1916}
+.btn-trocar:hover{background:#e4e0d8}
+.btn-pdf{background:#534AB7;color:#fff}
+.btn-pdf:hover{opacity:.88}
+.btn-action svg{width:14px;height:14px;flex-shrink:0}
+
+#dashboard{display:none}
+
+header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid rgba(0,0,0,0.08)}
+.header-left h1{font-size:26px;font-weight:700;letter-spacing:-0.5px;line-height:1.2}
+.header-left p{margin-top:4px;color:#6b6860;font-size:12px}
+.logo-badge{background:#534AB7;color:#fff;font-weight:600;font-size:12px;padding:7px 16px;border-radius:100px}
+
+.section-title{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:#6b6860;margin-bottom:14px}
+
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+.metric-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:16px 18px}
+.metric-card .lbl{font-size:10px;color:#6b6860;font-weight:600;letter-spacing:.3px;margin-bottom:6px}
+.metric-card .val{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}
+.metric-card .sub{font-size:10px;color:#6b6860;margin-top:3px}
+
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.chart-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:20px}
+.chart-card.full{grid-column:1/-1}
+.chart-card h3{font-size:13px;font-weight:600;margin-bottom:3px}
+.chart-card p{font-size:10px;color:#6b6860;margin-bottom:16px}
+.chart-wrap{position:relative;width:100%}
+.legend-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:10px;color:#6b6860}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+.table-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;overflow:hidden;margin-bottom:28px}
+.table-header{padding:18px 22px 0}
+.table-header h3{font-size:13px;font-weight:600;margin-bottom:3px}
+.table-header p{font-size:10px;color:#6b6860;margin-bottom:14px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#f5f4f0;font-weight:700;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;padding:9px 12px;text-align:left;white-space:nowrap}
+thead th:first-child{padding-left:22px}
+thead th:last-child{padding-right:22px;text-align:center}
+tbody tr{border-top:0.5px solid rgba(0,0,0,0.07)}
+tbody tr:hover{background:#f5f4f0}
+tbody td{padding:10px 12px;color:#1a1916}
+tbody td:first-child{padding-left:22px;font-weight:500}
+tbody td:last-child{padding-right:22px;text-align:center}
+.num{font-variant-numeric:tabular-nums;font-size:11.5px}
+
+.badge{display:inline-block;padding:3px 9px;border-radius:100px;font-size:9.5px;font-weight:700;letter-spacing:.2px}
+.b-ok{background:#EAF3DE;color:#3B6D11}
+.b-wa{background:#FAEEDA;color:#854F0B}
+.b-ch{background:#FCEBEB;color:#A32D2D}
+.b-lo{background:#E6F1FB;color:#185FA5}
+.s-ok{background:#EAF3DE;color:#3B6D11;display:inline-block;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:600}
+.s-pe{background:#FAEEDA;color:#854F0B;display:inline-block;padding:2px 7px;border-radius:5px;font-size:9px;font-weight:600}
+
+.bar-wrap{display:flex;align-items:center;gap:7px;min-width:90px}
+.bar-bg{flex:1;height:5px;background:#f0ede6;border-radius:100px;overflow:hidden}
+.bar-fill{height:100%;border-radius:100px;background:#534AB7}
+.bar-val{font-size:10px;color:#6b6860;min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
+
+footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justify-content:space-between;align-items:center;color:#6b6860;font-size:11px}
+
+.insights-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:24px 28px;margin-bottom:28px}
+.insights-card .ins-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.ins-icon{width:32px;height:32px;background:#EEEDFE;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ins-icon svg{width:16px;height:16px;stroke:#534AB7;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ins-title{font-size:13px;font-weight:600;color:#1a1916}
+.ins-sub{font-size:10px;color:#6b6860}
+.ins-body{font-size:13.5px;line-height:1.75;color:#1a1916}
+.ins-body p{margin-bottom:10px}
+.ins-body p:last-child{margin-bottom:0}
+.ins-loading{display:flex;align-items:center;gap:10px;color:#6b6860;font-size:13px}
+.ins-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#534AB7;animation:dot 1.2s infinite;margin-right:3px}
+.ins-dots span:nth-child(2){animation-delay:.2s}
+.ins-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.ins-cursor{display:inline-block;width:2px;height:14px;background:#534AB7;vertical-align:middle;animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.ins-error{color:#A32D2D;font-size:13px}
+.ins-tag{display:inline-block;background:#EEEDFE;color:#534AB7;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.3px;margin-left:8px;vertical-align:middle}
+
+.col-error{background:#FCEBEB;border-color:#F09595}
+.col-error p{color:#A32D2D}
+
+@media(max-width:768px){.metrics-row{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.chart-card.full{grid-column:1}}
+@media print{
+  body{background:#fff}
+  .upload-zone{display:none!important}
+  .btn-action{display:none!important}
+  .page{padding:20px}
+  .chart-card,.metric-card,.table-card,.insights-card{break-inside:avoid}
+  thead{display:table-header-group}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)">
+  <div class="upload-icon">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+  </div>
+  <h2>Arraste seu arquivo Excel aqui</h2>
+  <p>ou clique para selecionar</p>
+  <div class="hint">Aceita .xlsx e .xls · Os dados atualizam automaticamente</div>
+</div>
+
+<div id="errorMsg" style="display:none;background:#FCEBEB;border:0.5px solid #F09595;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#A32D2D"></div>
+
+<div id="dashboard">
+  <header>
+    <div class="header-left">
+      <h1>Relatório de Evolução<br>do Atendimento</h1>
+      <p id="headerSub">Carregando...</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-action btn-trocar" onclick="document.getElementById('fileInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        Trocar arquivo
+      </button>
+      <button class="btn-action btn-pdf" onclick="exportPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Exportar PDF
+      </button>
+      <div class="logo-badge" id="headerParceiro">—</div>
+    </div>
+  </header>
+
+  <p class="section-title">Visão Geral</p>
+  <div class="metrics-row" style="grid-template-columns:repeat(5,1fr)">
+    <div class="metric-card"><div class="lbl">Total de aquisições</div><div class="val" id="mAquisicoes" style="color:#534AB7">—</div><div class="sub">desde o início</div></div>
+    <div class="metric-card"><div class="lbl">Cancelamentos</div><div class="val" id="mCanceled" style="color:#A32D2D">—</div><div class="sub" id="mCanceledSub">—</div></div>
+    <div class="metric-card"><div class="lbl">Empresas ativas</div><div class="val" id="mTotal" style="color:#3B6D11">—</div><div class="sub">assinaturas vigentes</div></div>
+    <div class="metric-card"><div class="lbl">Recebidas esta semana</div><div class="val" id="mRec" style="color:#534AB7">—</div><div class="sub" id="mRecSub">—</div></div>
+    <div class="metric-card"><div class="lbl">Atendidas esta semana</div><div class="val" id="mAte" style="color:#3B6D11">—</div><div class="sub" id="mAteSub">—</div></div>
+  </div>
+
+  <p class="section-title">Análise por Saúde</p>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Distribuição por saúde do cliente</h3>
+      <p>Quantidade de empresas em cada status</p>
+      <div id="legendSaude" class="legend-row"></div>
+      <div class="chart-wrap" style="height:220px"><canvas id="cSaude" role="img" aria-label="Distribuição por saúde">Gráfico de saúde dos clientes.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Atendidas vs recebidas — semana atual</h3>
+      <p>Top 10 empresas por volume de mensagens</p>
+      <div class="chart-wrap" style="height:250px"><canvas id="cSemana" role="img" aria-label="Atendidas vs recebidas semana atual">Comparativo semanal.</canvas></div>
+    </div>
+    <div class="chart-card full">
+      <h3>Evolução semanal — semana atual vs semana passada</h3>
+      <p>Top 10 empresas por volume de mensagens</p>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div>Recebidas semana atual</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#AFA9EC"></div>Recebidas semana passada</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div>Atendidas semana atual</div>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="cEvolucao" role="img" aria-label="Evolução semanal">Evolução semanal por empresa.</canvas></div>
+    </div>
+  </div>
+
+  <p class="section-title">Detalhe por Empresa</p>
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Empresas monitoradas</h3>
+      <p>Dados completos · Semana atual, semana passada e mês passado</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <input type="text" id="filterBusca" placeholder="Buscar empresa..." oninput="filterTable()" style="flex:1;min-width:160px;padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none">
+        <select id="filterSaude" onchange="filterTable()" style="padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;background:#fff;cursor:pointer">
+          <option value="">Todos os status de saúde</option>
+          <option value="RISCO">Risco de Churn</option>
+          <option value="REQUER">Requer Atenção</option>
+          <option value="OK">OK</option>
+          <option value="BAIXO">Baixo Uso</option>
+        </select>
+        <select id="filterSituacao" onchange="filterTable()" style="padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;background:#fff;cursor:pointer">
+          <option value="">Todas as situações</option>
+          <option value="COMPLETED">Ativo</option>
+          <option value="CANCEL">Cancelado</option>
+          <option value="SUSPEND">Suspenso</option>
+          <option value="ARREAR">Em atraso</option>
+        </select>
+        <span id="filterCount" style="align-self:center;font-size:11px;color:#6b6860;white-space:nowrap"></span>
+      </div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr>
+        <th>Empresa</th><th>Status</th><th>Faturamento</th>
+        <th style="text-align:right">Rec. semana</th><th style="text-align:right">Ate. semana</th>
+        <th>Taxa semana</th><th style="text-align:right">Rec. mês ant.</th><th style="text-align:center">Saúde</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table></div>
+  </div>
+
+  <p class="section-title">Análise Inteligente <span class="ins-tag">IA</span></p>
+  <div class="insights-card" id="insightsCard">
+    <div class="ins-header">
+      <div class="ins-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
+      <div>
+        <div class="ins-title">Insights do relatório</div>
+        <div class="ins-sub">Gerado por Claude com base nos dados carregados</div>
+      </div>
+    </div>
+    <div class="ins-body" id="insightsBody">
+      <div class="ins-loading"><div class="ins-dots"><span></span><span></span><span></span></div>Analisando os dados...</div>
+    </div>
+  </div>
+
+  <footer>
+    <span id="footerLeft">Relatório de Atendimento por Empresa</span>
+    <span id="footerDate">—</span>
+  </footer>
+</div>
+
+</div>
+
+<script>
+const COLS = {
+  parceiro: ['parceiro'],
+  empresa: ['empresa'],
+  situacao: ['situacao'],
+  faturamento: ['data_faturamento','faturamento','data faturamento'],
+  recSemana: ['recebidas_na_semana','recebidas na semana','rec semana'],
+  ateSemana: ['atendidas_na_semana','atendidas na semana','ate semana'],
+  recSemanaAnt: ['recebidas_na_semana_passada','recebidas semana passada'],
+  ateSemanaAnt: ['atendidas_na_semana_passada','atendidas semana passada'],
+  recMes: ['recebidas_no_mes_passado','recebidas no mes passado','rec mes'],
+  ateMes: ['atendidas_no_mes_passado','atendidas no mes passado','ate mes'],
+  saude: ['saude_cliente','saude cliente','saúde','saude'],
+};
+
+let charts = {};
+
+function findCol(headers, alts) {
+  const norm = s => s.toLowerCase().replace(/[áàâãä]/g,'a').replace(/[éèê]/g,'e').replace(/[íì]/g,'i').replace(/[óòôõö]/g,'o').replace(/[úùû]/g,'u').replace(/[ç]/g,'c').trim();
+  for (const a of alts) {
+    const idx = headers.findIndex(h => norm(h) === norm(a));
+    if (idx >= 0) return idx;
+  }
+  return -1;
+}
+
+function parseData(wb) {
+  const sheetName = wb.SheetNames[0];
+  const ws = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  if (rows.length < 2) throw new Error('Planilha sem dados suficientes.');
+  const headers = rows[0].map(String);
+  const colIdx = {};
+  const missing = [];
+  for (const [key, alts] of Object.entries(COLS)) {
+    const idx = findCol(headers, alts);
+    if (idx < 0 && !['parceiro','situacao','faturamento'].includes(key)) missing.push(key);
+    colIdx[key] = idx;
+  }
+  if (missing.length > 0) throw new Error(`Colunas não encontradas: ${missing.join(', ')}. Verifique se o arquivo tem o formato correto.`);
+
+  const data = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[colIdx.empresa]) continue;
+    data.push({
+      parceiro: colIdx.parceiro >= 0 ? String(r[colIdx.parceiro] || '') : '',
+      empresa: String(r[colIdx.empresa] || ''),
+      situacao: colIdx.situacao >= 0 ? String(r[colIdx.situacao] || '') : '',
+      faturamento: colIdx.faturamento >= 0 ? String(r[colIdx.faturamento] || '') : '',
+      recSemana: Number(r[colIdx.recSemana]) || 0,
+      ateSemana: Number(r[colIdx.ateSemana]) || 0,
+      recSemanaAnt: Number(r[colIdx.recSemanaAnt]) || 0,
+      ateSemanaAnt: Number(r[colIdx.ateSemanaAnt]) || 0,
+      recMes: Number(r[colIdx.recMes]) || 0,
+      ateMes: Number(r[colIdx.ateMes]) || 0,
+      saude: String(r[colIdx.saude] || '').toUpperCase().trim(),
+    });
+  }
+  if (data.length === 0) throw new Error('Nenhuma linha de dados encontrada.');
+  return data;
+}
+
+function saudeBadge(s) {
+  if (s.includes('OK') && !s.includes('REQUER') && !s.includes('RISCO')) return '<span class="badge b-ok">OK</span>';
+  if (s.includes('REQUER') || s.includes('ATEN')) return '<span class="badge b-wa">Requer Atenção</span>';
+  if (s.includes('RISCO') || s.includes('CHURN')) return '<span class="badge b-ch">Risco de Churn</span>';
+  if (s.includes('BAIXO') || s.includes('USO')) return '<span class="badge b-lo">Baixo Uso</span>';
+  return `<span class="badge" style="background:#f0ede6;color:#6b6860">${s || '—'}</span>`;
+}
+
+function saudeColor(s) {
+  if (s.includes('OK') && !s.includes('REQUER') && !s.includes('RISCO')) return '#639922';
+  if (s.includes('REQUER') || s.includes('ATEN')) return '#EF9F27';
+  if (s.includes('RISCO') || s.includes('CHURN')) return '#E24B4A';
+  return '#378ADD';
+}
+
+function sitBadge(s) {
+  if ((s||'').toUpperCase().includes('COMPLET')) return '<span class="s-ok">Ativo</span>';
+  return '<span class="s-pe">Pendente</span>';
+}
+
+function taxaBar(rec, ate) {
+  if (rec === 0) return '<span style="color:#aaa;font-size:10px">—</span>';
+  const pct = Math.round((ate/rec)*100);
+  return `<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${pct}%"></div></div><span class="bar-val">${pct}%</span></div>`;
+}
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+function renderDashboard(data, fileName) {
+  const parceiro = data[0]?.parceiro || 'Parceiro';
+  const today = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('headerParceiro').textContent = parceiro;
+  document.getElementById('headerSub').textContent = `${fileName} · Gerado em ${today}`;
+  document.getElementById('footerLeft').textContent = `${parceiro} · Relatório de Atendimento`;
+  document.getElementById('footerDate').textContent = today;
+
+  const totRec = data.reduce((a,d)=>a+d.recSemana,0);
+  const totAte = data.reduce((a,d)=>a+d.ateSemana,0);
+  const totMes = data.reduce((a,d)=>a+d.recMes,0);
+  const taxaGeral = totRec > 0 ? Math.round((totAte/totRec)*100) : 0;
+
+  const canceled = data.filter(d => (d.situacao||'').toUpperCase().includes('CANCEL'));
+  const totalAtivas = data.length - canceled.length;
+
+  document.getElementById('mTotal').textContent = totalAtivas;
+  document.getElementById('mCanceled').textContent = canceled.length;
+  document.getElementById('mCanceledSub').textContent = canceled.length > 0
+    ? `do total de aquisições`
+    : 'nenhum cancelamento';
+  document.getElementById('mAquisicoes').textContent = data.length;
+  document.getElementById('mRec').textContent = totRec.toLocaleString('pt-BR');
+  document.getElementById('mRecSub').textContent = 'total de mensagens';
+  document.getElementById('mAte').textContent = totAte.toLocaleString('pt-BR');
+  document.getElementById('mAteSub').textContent = `Taxa geral: ${taxaGeral}%`;
+
+  const saudeCounts = {};
+  data.forEach(d => {
+    let key = 'Outro';
+    if (d.saude.includes('OK') && !d.saude.includes('REQUER') && !d.saude.includes('RISCO')) key = 'OK';
+    else if (d.saude.includes('REQUER') || d.saude.includes('ATEN')) key = 'Requer Atenção';
+    else if (d.saude.includes('RISCO') || d.saude.includes('CHURN')) key = 'Risco de Churn';
+    else if (d.saude.includes('BAIXO') || d.saude.includes('USO')) key = 'Baixo Uso';
+    saudeCounts[key] = (saudeCounts[key]||0)+1;
+  });
+
+  const saudeColors = {'OK':'#639922','Requer Atenção':'#EF9F27','Risco de Churn':'#E24B4A','Baixo Uso':'#378ADD','Outro':'#888780'};
+  const saudeKeys = Object.keys(saudeCounts);
+  document.getElementById('legendSaude').innerHTML = saudeKeys.map(k =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${saudeColors[k]||'#888'}"></div>${k} (${saudeCounts[k]})</div>`
+  ).join('');
+
+  destroyChart('saude');
+  charts.saude = new Chart(document.getElementById('cSaude'), {
+    type:'doughnut',
+    data:{labels:saudeKeys,datasets:[{data:saudeKeys.map(k=>saudeCounts[k]),backgroundColor:saudeKeys.map(k=>saudeColors[k]||'#888'),borderWidth:2,borderColor:'#fff',hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed}`}}}}
+  });
+
+  const top10 = [...data].sort((a,b)=>b.recSemana-a.recSemana).slice(0,10);
+  const short = d => d.empresa.length>17 ? d.empresa.slice(0,17)+'…' : d.empresa;
+
+  destroyChart('semana');
+  charts.semana = new Chart(document.getElementById('cSemana'), {
+    type:'bar',
+    data:{labels:top10.map(short),datasets:[
+      {label:'Recebidas',data:top10.map(d=>d.recSemana),backgroundColor:'#AFA9EC',borderRadius:4},
+      {label:'Atendidas',data:top10.map(d=>d.ateSemana),backgroundColor:'#534AB7',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}
+  });
+
+  destroyChart('evolucao');
+  charts.evolucao = new Chart(document.getElementById('cEvolucao'), {
+    type:'bar',
+    data:{labels:top10.map(short),datasets:[
+      {label:'Rec. semana atual',data:top10.map(d=>d.recSemana),backgroundColor:'#534AB7',borderRadius:3},
+      {label:'Rec. semana passada',data:top10.map(d=>d.recSemanaAnt),backgroundColor:'#AFA9EC',borderRadius:3},
+      {label:'Ate. semana atual',data:top10.map(d=>d.ateSemana),backgroundColor:'#3B6D11',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}
+  });
+
+  const saudePrio = s => {
+    if (s.includes('RISCO')||s.includes('CHURN')) return 0;
+    if (s.includes('REQUER')||s.includes('ATEN')) return 1;
+    if (s.includes('BAIXO')||s.includes('USO')) return 2;
+    return 3;
+  };
+  allRows = [...data].sort((a,b)=>saudePrio(a.saude)-saudePrio(b.saude));
+  document.getElementById('filterBusca').value = '';
+  document.getElementById('filterSaude').value = '';
+  document.getElementById('filterSituacao').value = '';
+  filterTable();
+
+  document.getElementById('dashboard').style.display = 'block';
+  generateInsights(data);
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+}
+
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  processFile(file);
+}
+
+function processFile(file) {
+  document.getElementById('errorMsg').style.display = 'none';
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const data = parseData(wb);
+      document.getElementById('dropZone').style.display = 'none';
+      renderDashboard(data, file.name);
+    } catch(err) {
+      showError('Erro ao processar o arquivo: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function generateInsights(data) {
+  const body = document.getElementById('insightsBody');
+
+  const totRec = data.reduce((a,d)=>a+d.recSemana,0);
+  const totAte = data.reduce((a,d)=>a+d.ateSemana,0);
+  const taxaGeral = totRec>0 ? Math.round((totAte/totRec)*100) : 0;
+
+  const canceled = data.filter(d=>(d.situacao||'').toUpperCase().includes('CANCEL'));
+  const suspended = data.filter(d=>(d.situacao||'').toUpperCase().includes('SUSPEND'));
+  const arrears = data.filter(d=>(d.situacao||'').toUpperCase().includes('ARREAR'));
+  const ativas = data.filter(d=>(d.situacao||'').toUpperCase().includes('COMPLETED'));
+
+  const churn = data.filter(d=>d.saude.includes('RISCO')||d.saude.includes('CHURN'));
+  const atencao = data.filter(d=>d.saude.includes('REQUER')||d.saude.includes('ATEN'));
+  const ok = data.filter(d=>d.saude.includes('OK')&&!d.saude.includes('REQUER')&&!d.saude.includes('RISCO'));
+  const baixoUso = data.filter(d=>d.saude.includes('BAIXO')||d.saude.includes('USO'));
+
+  const cresceram = data.filter(d=>d.recSemanaAnt>0&&d.recSemana>d.recSemanaAnt*1.1);
+  const cairam = data.filter(d=>d.recSemanaAnt>0&&d.recSemana<d.recSemanaAnt*0.7&&d.recSemanaAnt>5);
+  const semAtendimento = data.filter(d=>d.recSemana>0&&d.ateSemana===0);
+  const baixaTaxa = data.filter(d=>d.recSemana>5&&(d.ateSemana/d.recSemana)<0.7);
+
+  const pctChurn = Math.round((churn.length/data.length)*100);
+  const pctOk = Math.round((ok.length/data.length)*100);
+  const pctCanceled = Math.round((canceled.length/data.length)*100);
+
+  const paragrafos = [];
+
+  // Parágrafo 1 — visão geral da base
+  let p1 = `A base conta com ${data.length} empresas — ${ativas.length} ativas, ${canceled.length} canceladas (${pctCanceled}%)`;
+  if (suspended.length > 0) p1 += `, ${suspended.length} suspensas`;
+  if (arrears.length > 0) p1 += `, ${arrears.length} em atraso`;
+  p1 += `. Esta semana foram recebidas ${totRec.toLocaleString('pt-BR')} mensagens com taxa de atendimento de ${taxaGeral}%`;
+  if (taxaGeral >= 90) p1 += `, um desempenho excelente.`;
+  else if (taxaGeral >= 75) p1 += `, desempenho satisfatório mas com espaço para melhora.`;
+  else p1 += `, abaixo do esperado e requer atenção imediata.`;
+  paragrafos.push(p1);
+
+  // Parágrafo 2 — saúde da base
+  let p2 = `Quanto à saúde: ${ok.length} empresas (${pctOk}%) estão com status OK, ${atencao.length} requerem atenção e ${churn.length} (${pctChurn}%) estão em risco de churn.`;
+  if (baixoUso.length > 0) p2 += ` Outras ${baixoUso.length} apresentam baixo uso.`;
+  if (semAtendimento.length > 0) p2 += ` ${semAtendimento.length} ${semAtendimento.length===1?'empresa recebeu mensagens mas não atendeu nenhuma':'empresas receberam mensagens sem nenhum atendimento'} nesta semana.`;
+  if (baixaTaxa.length > 0) p2 += ` ${baixaTaxa.length} ${baixaTaxa.length===1?'empresa está':'empresas estão'} com taxa de atendimento abaixo de 70%.`;
+  paragrafos.push(p2);
+
+  // Parágrafo 3 — variações semanais (só se relevante)
+  const partes = [];
+  if (cresceram.length > 0) partes.push(`${cresceram.length} ${cresceram.length===1?'empresa cresceu':'empresas cresceram'} mais de 10% em volume`);
+  if (cairam.length > 0) partes.push(`${cairam.length} ${cairam.length===1?'empresa teve queda':'empresas tiveram queda'} superior a 30%`);
+  if (partes.length > 0) paragrafos.push(`Em relação à semana anterior: ${partes.join(' e ')}.`);
+
+  // Parágrafo 4 — recomendações
+  const acoes = [];
+  if (churn.length > 0) acoes.push(`priorizar contato com as ${churn.length} empresas em risco de churn`);
+  if (baixaTaxa.length > 0) acoes.push(`revisar o agente nas ${baixaTaxa.length} empresas com taxa abaixo de 70%`);
+  if (baixoUso.length > 0) acoes.push(`acompanhar as ${baixoUso.length} empresas com baixo uso antes que entrem em risco`);
+  if (cairam.length > 0) acoes.push(`investigar a queda nas ${cairam.length} empresas com redução acima de 30%`);
+  if (acoes.length > 0) paragrafos.push(`Recomendações: ${acoes.slice(0,3).map((a,i)=>`(${i+1}) ${a}`).join('; ')}.`);
+
+  body.innerHTML = paragrafos.map(p=>`<p>${p}</p>`).join('');
+}
+
+let allRows = [];
+
+function filterTable() {
+  const busca = document.getElementById('filterBusca').value.toLowerCase();
+  const saude = document.getElementById('filterSaude').value.toUpperCase();
+  const situacao = document.getElementById('filterSituacao').value.toUpperCase();
+
+  const visible = allRows.filter(r => {
+    const matchBusca = !busca || r.empresa.toLowerCase().includes(busca);
+    const matchSaude = !saude || r.saude.includes(saude);
+    const matchSit = !situacao || (r.situacao||'').toUpperCase().includes(situacao);
+    return matchBusca && matchSaude && matchSit;
+  });
+
+  document.getElementById('tableBody').innerHTML = visible.map(d=>`
+    <tr>
+      <td>${d.empresa}</td>
+      <td>${sitBadge(d.situacao)}</td>
+      <td class="num" style="color:#6b6860;font-size:10.5px">${d.faturamento}</td>
+      <td class="num" style="text-align:right">${d.recSemana}</td>
+      <td class="num" style="text-align:right">${d.ateSemana}</td>
+      <td style="min-width:100px">${taxaBar(d.recSemana,d.ateSemana)}</td>
+      <td class="num" style="text-align:right">${d.recMes}</td>
+      <td>${saudeBadge(d.saude)}</td>
+    </tr>`).join('');
+
+  const total = allRows.length;
+  document.getElementById('filterCount').textContent = visible.length < total ? `${visible.length} de ${total} empresas` : `${total} empresas`;
+}
+
+function exportPDF() {
+  const btns = document.querySelectorAll('.btn-action');
+  btns.forEach(b => b.style.display='none');
+  window.print();
+  btns.forEach(b => b.style.display='');
+}
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('drag')});
+dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+dz.addEventListener('drop', e=>{
+  e.preventDefault();dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if(f) processFile(f);
+});
+</script>
+</body>
+</html>
