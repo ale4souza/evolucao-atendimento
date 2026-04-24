@@ -901,6 +901,121 @@ async function generatePDF() {
     };
 
     // ════════════════════════════════
+    // ── CAPA ──
+    // ════════════════════════════════
+    pdf.setFillColor(...GREEN); pdf.rect(0,0,W,H,'F');
+    const cardTop=55, cardHt=150;
+    pdf.setFillColor(255,255,255); pdf.roundedRect(16,cardTop,W-32,cardHt,10,10,'F');
+
+    let ly = cardTop+18;
+    if (logoDataUrl) {
+      const tmpImg = new Image();
+      await new Promise(r=>{tmpImg.onload=r; tmpImg.src=logoDataUrl;});
+      const ratio = tmpImg.width/tmpImg.height;
+      const lw=Math.min(90,ratio*38), lh=lw/ratio;
+      try { pdf.addImage(logoDataUrl,'PNG',W/2-lw/2,ly,lw,lh,'','FAST'); ly+=lh+12; }
+      catch(e){ly+=8;}
+    }
+
+    pdf.setTextColor(26,25,22); pdf.setFont('helvetica','bold'); pdf.setFontSize(20);
+    pdf.text('Relatório de Evolução', W/2, ly,    {align:'center'});
+    pdf.text('do Atendimento',        W/2, ly+11, {align:'center'});
+    pdf.setDrawColor(...GREEN); pdf.setLineWidth(0.5);
+    pdf.line(40,ly+17,W-40,ly+17);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(12); pdf.setTextColor(107,104,96);
+    pdf.text(clientName, W/2, ly+28, {align:'center'});
+    pdf.text(dateStr,    W/2, ly+39, {align:'center'});
+
+    // Rodapé da capa — "Gerado por Helena CRM" com logo se disponível
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(8); pdf.setTextColor(255,255,255);
+    pdf.text('Gerado por', W/2, H-14, {align:'center'});
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); pdf.setTextColor(255,255,255);
+    pdf.text('Helena CRM', W/2, H-7, {align:'center'});
+
+    // ════════════════════════════════
+    // ── PÁG 2+: MÉTRICAS + GRÁFICOS ──
+    // ════════════════════════════════
+    newPage();
+    let curY = PAD;
+
+    curY = addLabel('Visão Geral', curY);
+    curY = await addEl(document.querySelectorAll('.metrics-row')[0], curY);
+    curY = await addEl(document.querySelectorAll('.metrics-row')[1], curY);
+
+    // Carteira (CSV) — só se estiver visível
+    const carteiraEl = document.getElementById('carteiraSection');
+    if (carteiraEl && carteiraEl.style.display !== 'none') {
+      curY = addLabel('Gestão de Carteira', curY);
+      curY = await addEl(carteiraEl.querySelector('.metrics-row'), curY);
+    }
+
+    curY = addLabel('Análise por Saúde', curY);
+    for (const card of document.querySelectorAll('.chart-card')) {
+      const {imgH} = await capture(card);
+      // Quebra página só se restar menos de 60mm OU se o gráfico não couber
+      if (curY + imgH > USABLE_H || (USABLE_H - curY < 60 && imgH > 60)) {
+        addFooter(); newPage(); curY = PAD;
+      }
+      curY = await addEl(card, curY);
+    }
+    addFooter();
+
+    // ════════════════════════════════
+    // ── TABELA — blocos de 25 linhas ──
+    // ════════════════════════════════
+    if (pagination) pagination.style.display='none';
+    if (filterRow)  filterRow.style.display='none';
+
+    const tbody = document.getElementById('tableBody');
+    const savedHTML = tbody.innerHTML;
+    const tableHeader = document.querySelector('.table-header');
+    const tableHeadEl = document.querySelector('thead');
+
+    // Só quebra página se restar menos de 80mm — senão continua na mesma
+    if (USABLE_H - curY < 80) { addFooter(); newPage(); curY = PAD; }
+    curY = addLabel('Detalhe por Empresa', curY);
+
+    // Captura o header da tabela (título + subtítulo)
+    const {canvas:hCanvas, imgH:hImgH} = await capture(tableHeader);
+    pdf.addImage(hCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,hImgH);
+    curY += hImgH + 1;
+
+    // Captura o thead (linha de colunas)
+    const {canvas:thCanvas, imgH:thImgH} = await capture(tableHeadEl);
+
+    // Renderiza em blocos de 25 linhas
+    const CHUNK = 25;
+    for (let i=0; i<allRows.length; i+=CHUNK) {
+      const chunk = allRows.slice(i, i+CHUNK);
+      tbody.innerHTML = chunk.map(d=>`
+        <tr>
+          <td>${d.empresa}</td><td>${sitBadge(d.situacao)}</td>
+          <td class="num" style="color:#6b6860;font-size:10.5px">${d.faturamento}</td>
+          <td class="num" style="text-align:right">${d.recSemana}</td>
+          <td class="num" style="text-align:right">${d.ateSemana}</td>
+          <td style="min-width:100px">${taxaBar(d.recSemana,d.ateSemana)}</td>
+          <td class="num" style="text-align:right">${d.recMes}</td>
+          <td>${saudeBadge(d.saude)}</td>
+        </tr>`).join('');
+
+      const {canvas:cCanvas, imgH:cImgH} = await capture(tbody);
+
+      // Se não cabe, nova página com thead repetido
+      if (curY + cImgH > USABLE_H) {
+        addFooter(); newPage(); curY = PAD;
+        pdf.addImage(thCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,thImgH);
+        curY += thImgH + 1;
+      }
+      pdf.addImage(cCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,cImgH);
+      curY += cImgH;
+    }
+
+    tbody.innerHTML = savedHTML;
+    if (pagination) pagination.style.display='';
+    if (filterRow)  filterRow.style.display='';
+    addFooter();
+
+    // ════════════════════════════════
     // ── ANOTAÇÕES ──
     // ════════════════════════════════
     const anotacoes = document.getElementById('anotacoes').value.trim();
