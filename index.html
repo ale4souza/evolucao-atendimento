@@ -6,15 +6,17 @@
 <title>Relatório de Atendimento — Dinâmico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4f0;color:#1a1916;font-size:14px;line-height:1.6}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#ffffff;color:#1a1916;font-size:14px;line-height:1.6}
 .page{max-width:1100px;margin:0 auto;padding:32px}
 
 .upload-zone{background:#fff;border:2px dashed #ccc;border-radius:16px;padding:48px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:32px}
-.upload-zone:hover,.upload-zone.drag{border-color:#534AB7;background:#EEEDFE}
+.upload-zone:hover,.upload-zone.drag{border-color:#00B37A;background:#E0F7F0}
 .upload-zone input{display:none}
-.upload-icon{width:48px;height:48px;margin:0 auto 16px;background:#534AB7;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.upload-icon{width:48px;height:48px;margin:0 auto 16px;background:#00B37A;border-radius:12px;display:flex;align-items:center;justify-content:center}
 .upload-icon svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .upload-zone h2{font-size:17px;font-weight:600;color:#1a1916;margin-bottom:6px}
 .upload-zone p{font-size:13px;color:#6b6860}
@@ -24,7 +26,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4f0;color:#1a191
 .btn-action{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;border:none;transition:opacity .15s}
 .btn-trocar{background:#f0ede6;color:#1a1916}
 .btn-trocar:hover{background:#e4e0d8}
-.btn-pdf{background:#534AB7;color:#fff}
+.btn-pdf{background:#00B37A;color:#fff}
 .btn-pdf:hover{opacity:.88}
 .btn-action svg{width:14px;height:14px;flex-shrink:0}
 
@@ -33,7 +35,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4f0;color:#1a191
 header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid rgba(0,0,0,0.08)}
 .header-left h1{font-size:26px;font-weight:700;letter-spacing:-0.5px;line-height:1.2}
 .header-left p{margin-top:4px;color:#6b6860;font-size:12px}
-.logo-badge{background:#534AB7;color:#fff;font-weight:600;font-size:12px;padding:7px 16px;border-radius:100px}
+.logo-badge{background:#00B37A;color:#fff;font-weight:600;font-size:12px;padding:7px 16px;border-radius:100px}
 
 .section-title{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:#6b6860;margin-bottom:14px}
 
@@ -86,8 +88,8 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 
 .insights-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:24px 28px;margin-bottom:28px}
 .insights-card .ins-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.ins-icon{width:32px;height:32px;background:#EEEDFE;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ins-icon svg{width:16px;height:16px;stroke:#534AB7;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ins-icon{width:32px;height:32px;background:#E0F7F0;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ins-icon svg{width:16px;height:16px;stroke:#00B37A;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ins-title{font-size:13px;font-weight:600;color:#1a1916}
 .ins-sub{font-size:10px;color:#6b6860}
 .ins-body{font-size:13.5px;line-height:1.75;color:#1a1916}
@@ -101,7 +103,7 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 .ins-cursor{display:inline-block;width:2px;height:14px;background:#534AB7;vertical-align:middle;animation:blink .8s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .ins-error{color:#A32D2D;font-size:13px}
-.ins-tag{display:inline-block;background:#EEEDFE;color:#534AB7;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.3px;margin-left:8px;vertical-align:middle}
+.ins-tag{display:inline-block;background:#E0F7F0;color:#00B37A;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.3px;margin-left:8px;vertical-align:middle}
 
 .col-error{background:#FCEBEB;border-color:#F09595}
 .col-error p{color:#A32D2D}
@@ -120,14 +122,26 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 <body>
 <div class="page">
 
-<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-  <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)">
-  <div class="upload-icon">
-    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+<input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)" style="display:none">
+<input type="file" id="csvInput" accept=".csv" onchange="handleCSV(event)" style="display:none">
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px">
+  <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" style="margin-bottom:0">
+    <div class="upload-icon" style="margin:0 auto 16px">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <h2>Excel de Atendimento</h2>
+    <p>Arraste ou clique para selecionar</p>
+    <div class="hint">Aceita .xlsx e .xls</div>
   </div>
-  <h2>Arraste seu arquivo Excel aqui</h2>
-  <p>ou clique para selecionar</p>
-  <div class="hint">Aceita .xlsx e .xls · Os dados atualizam automaticamente</div>
+  <div class="upload-zone" id="dropZoneCSV" onclick="document.getElementById('csvInput').click()" style="margin-bottom:0;border-color:#ccc">
+    <div class="upload-icon" style="background:#3B6D11;margin:0 auto 16px">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <h2>CSV de Carteira <span style="font-size:11px;font-weight:400;color:#aaa">(opcional)</span></h2>
+    <p id="csvStatus">Arraste ou clique para selecionar</p>
+    <div class="hint">Adquiridas, perdidas e churn por parceiro</div>
+  </div>
 </div>
 
 <div id="errorMsg" style="display:none;background:#FCEBEB;border:0.5px solid #F09595;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#A32D2D"></div>
@@ -141,9 +155,17 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     <div class="header-actions">
       <button class="btn-action btn-trocar" onclick="document.getElementById('fileInput').click()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
-        Trocar arquivo
+        Trocar Excel
       </button>
-      <button class="btn-action btn-pdf" onclick="exportPDF()">
+      <button class="btn-action btn-trocar" onclick="document.getElementById('csvInput').click()" style="background:#EAF3DE;color:#3B6D11">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        <span id="btnCSVLabel">Carregar CSV</span>
+      </button>
+      <button id="btnRemoveCSV" class="btn-action btn-trocar" onclick="removeCSV()" style="display:none;background:#FCEBEB;color:#A32D2D">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Remover CSV
+      </button>
+      <button class="btn-action btn-pdf" onclick="openPdfModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         Exportar PDF
       </button>
@@ -152,36 +174,78 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
   </header>
 
   <p class="section-title">Visão Geral</p>
-  <div class="metrics-row" style="grid-template-columns:repeat(5,1fr)">
-    <div class="metric-card"><div class="lbl">Total de aquisições</div><div class="val" id="mAquisicoes" style="color:#534AB7">—</div><div class="sub">desde o início</div></div>
-    <div class="metric-card"><div class="lbl">Cancelamentos</div><div class="val" id="mCanceled" style="color:#A32D2D">—</div><div class="sub" id="mCanceledSub">—</div></div>
+  <div class="metrics-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:10px">
     <div class="metric-card"><div class="lbl">Empresas ativas</div><div class="val" id="mTotal" style="color:#3B6D11">—</div><div class="sub">assinaturas vigentes</div></div>
-    <div class="metric-card"><div class="lbl">Recebidas esta semana</div><div class="val" id="mRec" style="color:#534AB7">—</div><div class="sub" id="mRecSub">—</div></div>
-    <div class="metric-card"><div class="lbl">Atendidas esta semana</div><div class="val" id="mAte" style="color:#3B6D11">—</div><div class="sub" id="mAteSub">—</div></div>
+    <div class="metric-card">
+      <div class="lbl">Recebidas esta semana</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="val" id="mRec" style="color:#00B37A">—</div>
+        <span id="mRecTrend" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="sub" id="mRecSub">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Atendidas esta semana</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="val" id="mAte" style="color:#3B6D11">—</div>
+        <span id="mAteTrend" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="sub" id="mAteSub">—</div>
+    </div>
+  </div>
+  <div class="metrics-row" style="grid-template-columns:repeat(2,1fr);margin-bottom:28px">
+    <div class="metric-card" style="opacity:.75">
+      <div class="lbl">Recebidas semana passada</div>
+      <div class="val" id="mRecAnt" style="color:#6b6860;font-size:22px">—</div>
+      <div class="sub">referência anterior</div>
+    </div>
+    <div class="metric-card" style="opacity:.75">
+      <div class="lbl">Atendidas semana passada</div>
+      <div class="val" id="mAteAnt" style="color:#6b6860;font-size:22px">—</div>
+      <div class="sub" id="mAteAntSub">—</div>
+    </div>
+  </div>
+
+  <div id="carteiraSection" style="display:none;margin-bottom:28px">
+    <p class="section-title">Gestão de Carteira — Mês Atual</p>
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
+      <div class="metric-card"><div class="lbl">Adquiridas no mês</div><div class="val" id="cAdquiridas" style="color:#3B6D11">—</div><div class="sub">novas contas</div></div>
+      <div class="metric-card"><div class="lbl">Perdidas no mês</div><div class="val" id="cPerdidas" style="color:#A32D2D">—</div><div class="sub">contas canceladas</div></div>
+      <div class="metric-card"><div class="lbl">Tração líquida</div><div class="val" id="cTracao" style="color:#534AB7">—</div><div class="sub">adquiridas − perdidas</div></div>
+      <div class="metric-card"><div class="lbl">Churn do mês</div><div class="val" id="cChurn" style="color:#854F0B">—</div><div class="sub">taxa de churn mensal</div></div>
+    </div>
   </div>
 
   <p class="section-title">Análise por Saúde</p>
   <div class="charts-grid">
-    <div class="chart-card">
+    <div class="chart-card full">
       <h3>Distribuição por saúde do cliente</h3>
       <p>Quantidade de empresas em cada status</p>
-      <div id="legendSaude" class="legend-row"></div>
       <div class="chart-wrap" style="height:220px"><canvas id="cSaude" role="img" aria-label="Distribuição por saúde">Gráfico de saúde dos clientes.</canvas></div>
     </div>
-    <div class="chart-card">
+    <div class="chart-card full">
       <h3>Atendidas vs recebidas — semana atual</h3>
-      <p>Top 10 empresas por volume de mensagens</p>
-      <div class="chart-wrap" style="height:250px"><canvas id="cSemana" role="img" aria-label="Atendidas vs recebidas semana atual">Comparativo semanal.</canvas></div>
+      <p>10 empresas com menor volume de mensagens (excluindo sem atividade)</p>
+      <div class="chart-wrap" style="height:280px"><canvas id="cSemana" role="img" aria-label="Atendidas vs recebidas semana atual">Comparativo semanal.</canvas></div>
     </div>
     <div class="chart-card full">
       <h3>Evolução semanal — semana atual vs semana passada</h3>
-      <p>Top 10 empresas por volume de mensagens</p>
+      <p>10 empresas com menor volume de mensagens (excluindo sem atividade)</p>
       <div class="legend-row">
-        <div class="legend-item"><div class="legend-dot" style="background:#534AB7"></div>Recebidas semana atual</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#AFA9EC"></div>Recebidas semana passada</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00B37A"></div>Recebidas semana atual</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#99DFC9"></div>Recebidas semana passada</div>
         <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div>Atendidas semana atual</div>
       </div>
       <div class="chart-wrap" style="height:300px"><canvas id="cEvolucao" role="img" aria-label="Evolução semanal">Evolução semanal por empresa.</canvas></div>
+    </div>
+    <div class="chart-card full">
+      <h3>Pior desempenho mensal — mês passado</h3>
+      <p>10 empresas com menor taxa de atendimento no mês anterior (mín. 5 mensagens)</p>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:#99DFC9"></div>Recebidas</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#00B37A"></div>Atendidas</div>
+      </div>
+      <div class="chart-wrap" style="height:300px"><canvas id="cMensal" role="img" aria-label="Tendência mensal">Tendência mensal.</canvas></div>
     </div>
   </div>
 
@@ -217,6 +281,13 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
       </tr></thead>
       <tbody id="tableBody"></tbody>
     </table></div>
+    <div id="pagination" style="display:flex;align-items:center;justify-content:space-between;padding:12px 22px;border-top:0.5px solid rgba(0,0,0,0.07)">
+      <span id="pageInfo" style="font-size:11px;color:#6b6860"></span>
+      <div style="display:flex;gap:6px">
+        <button id="btnPrev" onclick="changePage(-1)" style="padding:5px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:7px;background:#fff;font-size:12px;cursor:pointer;color:#1a1916">← Anterior</button>
+        <button id="btnNext" onclick="changePage(1)" style="padding:5px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:7px;background:#fff;font-size:12px;cursor:pointer;color:#1a1916">Próxima →</button>
+      </div>
+    </div>
   </div>
 
   <p class="section-title">Análise Inteligente <span class="ins-tag">IA</span></p>
@@ -233,12 +304,48 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     </div>
   </div>
 
+  <p class="section-title">Observações</p>
+  <div class="insights-card" style="margin-bottom:28px">
+    <div class="ins-header">
+      <div class="ins-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#00B37A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+      <div>
+        <div class="ins-title">Anotações livres</div>
+        <div class="ins-sub">Escreva aqui observações, comentários ou pontos de atenção para o relatório</div>
+      </div>
+    </div>
+    <textarea id="anotacoes" placeholder="Digite suas observações aqui..." style="width:100%;min-height:120px;border:0.5px solid rgba(0,0,0,0.1);border-radius:10px;padding:14px;font-family:inherit;font-size:13.5px;line-height:1.7;color:#1a1916;resize:vertical;outline:none;background:#fafaf8"></textarea>
+  </div>
+
   <footer>
     <span id="footerLeft">Relatório de Atendimento por Empresa</span>
     <span id="footerDate">—</span>
   </footer>
 </div>
 
+</div>
+
+<!-- Modal exportar PDF -->
+<div id="pdfModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:6px">Exportar PDF</h3>
+    <p style="font-size:12px;color:#6b6860;margin-bottom:24px">Adicione a logo do cliente para aparecer na capa do relatório</p>
+    <div id="logoDropZone" style="border:2px dashed #ccc;border-radius:12px;padding:28px;text-align:center;cursor:pointer;margin-bottom:20px;transition:border-color .2s" onclick="document.getElementById('logoInput').click()">
+      <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="previewLogo(event)">
+      <div id="logoPreview" style="display:none;margin-bottom:10px">
+        <img id="logoImg" style="max-height:60px;max-width:200px;object-fit:contain">
+        <button onclick="clearLogo()" style="display:block;margin:8px auto 0;font-size:11px;color:#A32D2D;background:none;border:0.5px solid #A32D2D;border-radius:6px;padding:3px 10px;cursor:pointer">✕ Remover logo</button>
+      </div>
+      <p id="logoPlaceholder" style="font-size:12px;color:#6b6860">Clique para selecionar a logo<br><span style="font-size:10px;color:#aaa">PNG, JPG ou SVG · Recomendado fundo transparente</span></p>
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="font-size:11px;font-weight:600;color:#6b6860;display:block;margin-bottom:6px">NOME DO CLIENTE (aparece na capa)</label>
+      <input id="pdfClientName" type="text" placeholder="Ex: Helena CRM" style="width:100%;padding:9px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;outline:none">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closePdfModal()" style="flex:1;padding:10px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;background:#fff;font-size:13px;cursor:pointer;font-weight:500">Cancelar</button>
+      <button onclick="generatePDF()" id="btnGerarPDF" style="flex:2;padding:10px;background:#00B37A;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">Gerar PDF</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -352,15 +459,32 @@ function renderDashboard(data, fileName) {
   const totalAtivas = data.length - canceled.length;
 
   document.getElementById('mTotal').textContent = totalAtivas;
-  document.getElementById('mCanceled').textContent = canceled.length;
-  document.getElementById('mCanceledSub').textContent = canceled.length > 0
-    ? `do total de aquisições`
-    : 'nenhum cancelamento';
-  document.getElementById('mAquisicoes').textContent = data.length;
   document.getElementById('mRec').textContent = totRec.toLocaleString('pt-BR');
   document.getElementById('mRecSub').textContent = 'total de mensagens';
   document.getElementById('mAte').textContent = totAte.toLocaleString('pt-BR');
   document.getElementById('mAteSub').textContent = `Taxa geral: ${taxaGeral}%`;
+
+  // Setas de tendência vs semana passada
+  const totRecAnt = data.reduce((a,d)=>a+d.recSemanaAnt,0);
+  const totAteAnt = data.reduce((a,d)=>a+d.ateSemanaAnt,0);
+
+  function trendBadge(current, previous, elId) {
+    const el = document.getElementById(elId);
+    if (!previous || previous === 0) { el.textContent = ''; return; }
+    const pct = Math.round(((current - previous) / previous) * 100);
+    const up = pct >= 0;
+    const arrow = up ? '↑' : '↓';
+    const color = up ? '#185FA5' : '#A32D2D';
+    el.innerHTML = `<span style="color:${color}">${arrow} ${Math.abs(pct)}%</span>`;
+  }
+
+  trendBadge(totRec, totRecAnt, 'mRecTrend');
+  trendBadge(totAte, totAteAnt, 'mAteTrend');
+
+  document.getElementById('mRecAnt').textContent = totRecAnt.toLocaleString('pt-BR');
+  document.getElementById('mAteAnt').textContent = totAteAnt.toLocaleString('pt-BR');
+  const taxaAnt = totRecAnt > 0 ? Math.round((totAteAnt/totRecAnt)*100) : 0;
+  document.getElementById('mAteAntSub').textContent = `Taxa semana passada: ${taxaAnt}%`;
 
   const saudeCounts = {};
   data.forEach(d => {
@@ -373,19 +497,30 @@ function renderDashboard(data, fileName) {
   });
 
   const saudeColors = {'OK':'#639922','Requer Atenção':'#EF9F27','Risco de Churn':'#E24B4A','Baixo Uso':'#378ADD','Outro':'#888780'};
-  const saudeKeys = Object.keys(saudeCounts);
-  document.getElementById('legendSaude').innerHTML = saudeKeys.map(k =>
-    `<div class="legend-item"><div class="legend-dot" style="background:${saudeColors[k]||'#888'}"></div>${k} (${saudeCounts[k]})</div>`
-  ).join('');
+  const saudeKeys = ['Risco de Churn','Requer Atenção','Baixo Uso','OK'].filter(k=>saudeCounts[k]);
 
   destroyChart('saude');
   charts.saude = new Chart(document.getElementById('cSaude'), {
-    type:'doughnut',
-    data:{labels:saudeKeys,datasets:[{data:saudeKeys.map(k=>saudeCounts[k]),backgroundColor:saudeKeys.map(k=>saudeColors[k]||'#888'),borderWidth:2,borderColor:'#fff',hoverOffset:5}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed}`}}}}
+    type:'bar',
+    data:{
+      labels: saudeKeys,
+      datasets:[{
+        data: saudeKeys.map(k=>saudeCounts[k]),
+        backgroundColor: saudeKeys.map(k=>saudeColors[k]||'#888'),
+        borderRadius:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} empresas`}}},
+      scales:{
+        x:{ticks:{font:{size:11}}, grid:{display:false}},
+        y:{ticks:{font:{size:10},stepSize:1}, grid:{color:'rgba(0,0,0,0.05)'}}
+      }
+    }
   });
 
-  const top10 = [...data].sort((a,b)=>b.recSemana-a.recSemana).slice(0,10);
+  const top10 = [...data].filter(d=>d.recSemana>0).sort((a,b)=>a.recSemana-b.recSemana).slice(0,10);
   const short = d => d.empresa.length>17 ? d.empresa.slice(0,17)+'…' : d.empresa;
 
   destroyChart('semana');
@@ -409,6 +544,29 @@ function renderDashboard(data, fileName) {
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}
   });
 
+  // Top 10 por volume do mês passado para o gráfico mensal
+  // Top 10 piores em taxa de atendimento mensal (com pelo menos 5 mensagens recebidas)
+  const top10Mensal = [...data]
+    .filter(d=>d.recMes>=5)
+    .sort((a,b)=>(a.ateMes/a.recMes)-(b.ateMes/b.recMes))
+    .slice(0,10);
+  destroyChart('mensal');
+  charts.mensal = new Chart(document.getElementById('cMensal'), {
+    type:'bar',
+    data:{labels:top10Mensal.map(short),datasets:[
+      {label:'Recebidas',data:top10Mensal.map(d=>d.recMes),backgroundColor:'#AFA9EC',borderRadius:4},
+      {label:'Atendidas',data:top10Mensal.map(d=>d.ateMes),backgroundColor:'#534AB7',borderRadius:4},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.datasetIndex===0?` Recebidas: ${ctx.parsed.y}`:` Atendidas: ${ctx.parsed.y}`}}},
+      scales:{
+        x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},
+        y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}
+      }
+    }
+  });
+
   const saudePrio = s => {
     if (s.includes('RISCO')||s.includes('CHURN')) return 0;
     if (s.includes('REQUER')||s.includes('ATEN')) return 1;
@@ -423,6 +581,7 @@ function renderDashboard(data, fileName) {
 
   document.getElementById('dashboard').style.display = 'block';
   generateInsights(data);
+  renderCarteira(parceiro);
 }
 
 function showError(msg) {
@@ -446,6 +605,10 @@ function processFile(file) {
       const wb = XLSX.read(e.target.result, {type:'array'});
       const data = parseData(wb);
       document.getElementById('dropZone').style.display = 'none';
+      document.getElementById('dropZoneCSV').style.display = 'none';
+      document.getElementById('anotacoes').value = '';
+      document.getElementById('pdfClientName') && (document.getElementById('pdfClientName').value = '');
+      clearLogo();
       renderDashboard(data, file.name);
     } catch(err) {
       showError('Erro ao processar o arquivo: ' + err.message);
@@ -454,83 +617,185 @@ function processFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
+// ── CSV ──
+let csvData = null; // dados do CSV carregado
+let carteiraChart = null;
+
+function removeCSV() {
+  csvData = null;
+  document.getElementById('csvInput').value = '';
+  document.getElementById('btnCSVLabel').textContent = 'Carregar CSV';
+  document.getElementById('btnRemoveCSV').style.display = 'none';
+  document.getElementById('csvStatus').textContent = 'Arraste ou clique para selecionar';
+  document.getElementById('dropZoneCSV').style.borderColor = '#ccc';
+  document.getElementById('carteiraSection').style.display = 'none';
+}
+
+function handleCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(l=>l.trim());
+      const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+      csvData = lines.slice(1).map(line => {
+        const vals = line.split(',').map(v=>v.trim().replace(/^"|"$/g,''));
+        const obj = {};
+        headers.forEach((h,i) => obj[h] = vals[i]||'');
+        return obj;
+      }).filter(r=>r['Parceiro']);
+
+      document.getElementById('csvStatus').textContent = `✓ ${file.name} — ${csvData.length} parceiros`;
+      document.getElementById('dropZoneCSV').style.borderColor = '#3B6D11';
+      document.getElementById('btnCSVLabel').textContent = 'Trocar CSV';
+      document.getElementById('btnRemoveCSV').style.display = '';
+
+      // Se o Excel já foi carregado, renderiza a seção
+      if (document.getElementById('dashboard').style.display !== 'none') {
+        const parceiro = document.getElementById('headerParceiro').textContent;
+        renderCarteira(parceiro);
+      }
+    } catch(err) {
+      document.getElementById('csvStatus').textContent = 'Erro ao ler CSV';
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function normalizeName(s) {
+  return (s||'').toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function renderCarteira(parceiroExcel) {
+  if (!csvData || !parceiroExcel) return;
+
+  // Busca a linha do CSV cujo Parceiro bate com o parceiro do Excel
+  const normExcel = normalizeName(parceiroExcel);
+  const row = csvData.find(r => {
+    const normCSV = normalizeName(r['Parceiro']);
+    return normCSV.includes(normExcel) || normExcel.includes(normCSV) ||
+           normCSV.split(' ').some(w=>w.length>3 && normExcel.includes(w));
+  });
+
+  if (!row) {
+    document.getElementById('carteiraSection').style.display = 'none';
+    return;
+  }
+
+  const adq  = parseInt(row['Adquiridas'])||0;
+  const per  = Math.abs(parseInt(row['Perdidas'])||0);
+  const trac = parseInt(row['Tração'])||0;
+  const pat  = parseInt(row['Patamar'])||0;
+  const churnRaw = parseFloat(row['Churn (%)'])||0;
+  const churnPct = pat > 0 ? ((per / pat) * 100).toFixed(1) + '%' : '—';
+  const ciclo = row['Ciclo']||'—';
+  const tend  = row['Tendência']||'—';
+  const status= row['Status Financeiro']||'—';
+
+  document.getElementById('cAdquiridas').textContent = adq;
+  document.getElementById('cPerdidas').textContent = per;
+  document.getElementById('cTracao').textContent = (trac>=0?'+':'')+trac;
+  document.getElementById('cTracao').style.color = trac>=0?'#3B6D11':'#A32D2D';
+  document.getElementById('cChurn').textContent = churnPct;
+
+  document.getElementById('carteiraSection').style.display = 'block';
+}
+
 async function generateInsights(data) {
   const body = document.getElementById('insightsBody');
 
-  const totRec = data.reduce((a,d)=>a+d.recSemana,0);
-  const totAte = data.reduce((a,d)=>a+d.ateSemana,0);
+  const totRec    = data.reduce((a,d)=>a+d.recSemana,0);
+  const totAte    = data.reduce((a,d)=>a+d.ateSemana,0);
+  const totRecAnt = data.reduce((a,d)=>a+d.recSemanaAnt,0);
+  const totAteAnt = data.reduce((a,d)=>a+d.ateSemanaAnt,0);
   const taxaGeral = totRec>0 ? Math.round((totAte/totRec)*100) : 0;
+  const taxaAnt   = totRecAnt>0 ? Math.round((totAteAnt/totRecAnt)*100) : 0;
+  const varRec    = totRecAnt>0 ? Math.round(((totRec-totRecAnt)/totRecAnt)*100) : null;
+  const varAte    = totAteAnt>0 ? Math.round(((totAte-totAteAnt)/totAteAnt)*100) : null;
 
-  const canceled = data.filter(d=>(d.situacao||'').toUpperCase().includes('CANCEL'));
-  const suspended = data.filter(d=>(d.situacao||'').toUpperCase().includes('SUSPEND'));
-  const arrears = data.filter(d=>(d.situacao||'').toUpperCase().includes('ARREAR'));
-  const ativas = data.filter(d=>(d.situacao||'').toUpperCase().includes('COMPLETED'));
-
-  const churn = data.filter(d=>d.saude.includes('RISCO')||d.saude.includes('CHURN'));
-  const atencao = data.filter(d=>d.saude.includes('REQUER')||d.saude.includes('ATEN'));
-  const ok = data.filter(d=>d.saude.includes('OK')&&!d.saude.includes('REQUER')&&!d.saude.includes('RISCO'));
-  const baixoUso = data.filter(d=>d.saude.includes('BAIXO')||d.saude.includes('USO'));
-
-  const cresceram = data.filter(d=>d.recSemanaAnt>0&&d.recSemana>d.recSemanaAnt*1.1);
-  const cairam = data.filter(d=>d.recSemanaAnt>0&&d.recSemana<d.recSemanaAnt*0.7&&d.recSemanaAnt>5);
-  const semAtendimento = data.filter(d=>d.recSemana>0&&d.ateSemana===0);
-  const baixaTaxa = data.filter(d=>d.recSemana>5&&(d.ateSemana/d.recSemana)<0.7);
-
-  const pctChurn = Math.round((churn.length/data.length)*100);
-  const pctOk = Math.round((ok.length/data.length)*100);
-  const pctCanceled = Math.round((canceled.length/data.length)*100);
+  const canceled   = data.filter(d=>(d.situacao||'').toUpperCase().includes('CANCEL'));
+  const ativas     = data.filter(d=>(d.situacao||'').toUpperCase().includes('COMPLETED'));
+  const churn      = data.filter(d=>d.saude.includes('RISCO')||d.saude.includes('CHURN'));
+  const atencao    = data.filter(d=>d.saude.includes('REQUER')||d.saude.includes('ATEN'));
+  const ok         = data.filter(d=>d.saude.includes('OK')&&!d.saude.includes('REQUER')&&!d.saude.includes('RISCO'));
+  const baixoUso   = data.filter(d=>d.saude.includes('BAIXO')||d.saude.includes('USO'));
+  const cresceram  = data.filter(d=>d.recSemanaAnt>0&&d.recSemana>d.recSemanaAnt*1.1).sort((a,b)=>b.recSemana-a.recSemana);
+  const cairam     = data.filter(d=>d.recSemanaAnt>0&&d.recSemana<d.recSemanaAnt*0.7&&d.recSemanaAnt>5).sort((a,b)=>a.recSemana-b.recSemana);
+  const semAtend   = data.filter(d=>d.recSemana>0&&d.ateSemana===0);
+  const baixaTaxa  = data.filter(d=>d.recSemana>5&&(d.ateSemana/d.recSemana)<0.7);
 
   const paragrafos = [];
 
-  // Parágrafo 1 — visão geral da base
-  let p1 = `A base conta com ${data.length} empresas — ${ativas.length} ativas, ${canceled.length} canceladas (${pctCanceled}%)`;
-  if (suspended.length > 0) p1 += `, ${suspended.length} suspensas`;
-  if (arrears.length > 0) p1 += `, ${arrears.length} em atraso`;
-  p1 += `. Esta semana foram recebidas ${totRec.toLocaleString('pt-BR')} mensagens com taxa de atendimento de ${taxaGeral}%`;
-  if (taxaGeral >= 90) p1 += `, um desempenho excelente.`;
-  else if (taxaGeral >= 75) p1 += `, desempenho satisfatório mas com espaço para melhora.`;
-  else p1 += `, abaixo do esperado e requer atenção imediata.`;
+  // ── 1. Resumo geral da semana ──
+  let p1 = `Esta semana foram recebidas ${totRec.toLocaleString('pt-BR')} mensagens`;
+  if (varRec !== null) p1 += ` (${varRec>=0?'+':''}${varRec}% vs semana passada)`;
+  p1 += `, com ${totAte.toLocaleString('pt-BR')} atendidas — taxa de ${taxaGeral}%`;
+  if (taxaAnt > 0) {
+    const diffTaxa = taxaGeral - taxaAnt;
+    p1 += ` (${diffTaxa>=0?'+':''}${diffTaxa}pp em relação à semana anterior, que foi ${taxaAnt}%)`;
+  }
+  p1 += taxaGeral>=90 ? '. Desempenho excelente.' : taxaGeral>=75 ? '. Desempenho satisfatório, mas há espaço para melhora.' : '. Desempenho abaixo do esperado.';
   paragrafos.push(p1);
 
-  // Parágrafo 2 — saúde da base
-  let p2 = `Quanto à saúde: ${ok.length} empresas (${pctOk}%) estão com status OK, ${atencao.length} requerem atenção e ${churn.length} (${pctChurn}%) estão em risco de churn.`;
-  if (baixoUso.length > 0) p2 += ` Outras ${baixoUso.length} apresentam baixo uso.`;
-  if (semAtendimento.length > 0) p2 += ` ${semAtendimento.length} ${semAtendimento.length===1?'empresa recebeu mensagens mas não atendeu nenhuma':'empresas receberam mensagens sem nenhum atendimento'} nesta semana.`;
-  if (baixaTaxa.length > 0) p2 += ` ${baixaTaxa.length} ${baixaTaxa.length===1?'empresa está':'empresas estão'} com taxa de atendimento abaixo de 70%.`;
+  // ── 2. Saúde da base ──
+  const pctOk    = Math.round((ok.length/data.length)*100);
+  const pctChurn = Math.round((churn.length/data.length)*100);
+  let p2 = `A base conta com ${data.length} empresas (${ativas.length} ativas, ${canceled.length} canceladas). `;
+  p2 += `Quanto à saúde: ${ok.length} (${pctOk}%) estão com status OK, ${atencao.length} requerem atenção, ${churn.length} (${pctChurn}%) em risco de churn`;
+  if (baixoUso.length > 0) p2 += ` e ${baixoUso.length} com baixo uso`;
+  p2 += '.';
   paragrafos.push(p2);
 
-  // Parágrafo 3 — variações semanais (só se relevante)
+  // ── 3. Empresas que mais cresceram / caíram ──
   const partes = [];
-  if (cresceram.length > 0) partes.push(`${cresceram.length} ${cresceram.length===1?'empresa cresceu':'empresas cresceram'} mais de 10% em volume`);
-  if (cairam.length > 0) partes.push(`${cairam.length} ${cairam.length===1?'empresa teve queda':'empresas tiveram queda'} superior a 30%`);
-  if (partes.length > 0) paragrafos.push(`Em relação à semana anterior: ${partes.join(' e ')}.`);
+  if (cresceram.length > 0) {
+    const top3 = cresceram.slice(0,3).map(d=>{
+      const v = Math.round(((d.recSemana-d.recSemanaAnt)/d.recSemanaAnt)*100);
+      return `${d.empresa.length>25?d.empresa.slice(0,25)+'…':d.empresa} (+${v}%)`;
+    });
+    partes.push(`${cresceram.length} empresa${cresceram.length>1?'s cresceram':' cresceu'} mais de 10% em volume — destaque para: ${top3.join(', ')}`);
+  }
+  if (cairam.length > 0) {
+    const top3 = cairam.slice(0,3).map(d=>{
+      const v = Math.round(((d.recSemana-d.recSemanaAnt)/d.recSemanaAnt)*100);
+      return `${d.empresa.length>25?d.empresa.slice(0,25)+'…':d.empresa} (${v}%)`;
+    });
+    partes.push(`${cairam.length} empresa${cairam.length>1?'s tiveram queda':' teve queda'} superior a 30% — atenção: ${top3.join(', ')}`);
+  }
+  if (partes.length > 0) paragrafos.push(partes.join('. ') + '.');
 
-  // Parágrafo 4 — recomendações
+  // ── 4. Recomendações ──
   const acoes = [];
   if (churn.length > 0) acoes.push(`priorizar contato com as ${churn.length} empresas em risco de churn`);
-  if (baixaTaxa.length > 0) acoes.push(`revisar o agente nas ${baixaTaxa.length} empresas com taxa abaixo de 70%`);
+  if (baixaTaxa.length > 0 || semAtend.length > 0) {
+    const n = new Set([...baixaTaxa, ...semAtend]).size;
+    acoes.push(`revisar as automações (chatbot ou agente de IA) nas ${n} empresas com taxa de atendimento abaixo de 70%`);
+  }
   if (baixoUso.length > 0) acoes.push(`acompanhar as ${baixoUso.length} empresas com baixo uso antes que entrem em risco`);
-  if (cairam.length > 0) acoes.push(`investigar a queda nas ${cairam.length} empresas com redução acima de 30%`);
-  if (acoes.length > 0) paragrafos.push(`Recomendações: ${acoes.slice(0,3).map((a,i)=>`(${i+1}) ${a}`).join('; ')}.`);
+  if (cairam.length > 0) acoes.push(`investigar a queda nas ${cairam.length} empresas com redução acima de 30% no volume`);
+  if (acoes.length > 0) paragrafos.push('Recomendações: ' + acoes.map((a,i)=>`(${i+1}) ${a}`).join('; ') + '.');
 
   body.innerHTML = paragrafos.map(p=>`<p>${p}</p>`).join('');
 }
 
 let allRows = [];
 
-function filterTable() {
-  const busca = document.getElementById('filterBusca').value.toLowerCase();
-  const saude = document.getElementById('filterSaude').value.toUpperCase();
-  const situacao = document.getElementById('filterSituacao').value.toUpperCase();
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let filteredRows = [];
 
-  const visible = allRows.filter(r => {
-    const matchBusca = !busca || r.empresa.toLowerCase().includes(busca);
-    const matchSaude = !saude || r.saude.includes(saude);
-    const matchSit = !situacao || (r.situacao||'').toUpperCase().includes(situacao);
-    return matchBusca && matchSaude && matchSit;
-  });
+function renderPage() {
+  const start = (currentPage-1)*PAGE_SIZE;
+  const end = start+PAGE_SIZE;
+  const page = filteredRows.slice(start, end);
+  const total = filteredRows.length;
+  const totalPages = Math.ceil(total/PAGE_SIZE);
 
-  document.getElementById('tableBody').innerHTML = visible.map(d=>`
+  document.getElementById('tableBody').innerHTML = page.map(d=>`
     <tr>
       <td>${d.empresa}</td>
       <td>${sitBadge(d.situacao)}</td>
@@ -542,15 +807,337 @@ function filterTable() {
       <td>${saudeBadge(d.saude)}</td>
     </tr>`).join('');
 
-  const total = allRows.length;
-  document.getElementById('filterCount').textContent = visible.length < total ? `${visible.length} de ${total} empresas` : `${total} empresas`;
+  document.getElementById('pageInfo').textContent = total > PAGE_SIZE
+    ? `Página ${currentPage} de ${totalPages} · ${total} empresas`
+    : `${total} empresa${total!==1?'s':''}`;
+
+  document.getElementById('btnPrev').disabled = currentPage<=1;
+  document.getElementById('btnNext').disabled = currentPage>=totalPages;
+  document.getElementById('btnPrev').style.opacity = currentPage<=1 ? '.35' : '1';
+  document.getElementById('btnNext').style.opacity = currentPage>=totalPages ? '.35' : '1';
+  document.getElementById('pagination').style.display = total > PAGE_SIZE ? 'flex' : 'none';
+
+  const allTotal = allRows.length;
+  document.getElementById('filterCount').textContent = total < allTotal ? `${total} de ${allTotal} empresas` : `${allTotal} empresas`;
 }
 
-function exportPDF() {
-  const btns = document.querySelectorAll('.btn-action');
-  btns.forEach(b => b.style.display='none');
-  window.print();
-  btns.forEach(b => b.style.display='');
+function changePage(dir) {
+  const totalPages = Math.ceil(filteredRows.length/PAGE_SIZE);
+  currentPage = Math.max(1, Math.min(totalPages, currentPage+dir));
+  renderPage();
+}
+
+function filterTable() {
+  const busca = document.getElementById('filterBusca').value.toLowerCase();
+  const saude = document.getElementById('filterSaude').value.toUpperCase();
+  const situacao = document.getElementById('filterSituacao').value.toUpperCase();
+
+  filteredRows = allRows.filter(r => {
+    const matchBusca = !busca || r.empresa.toLowerCase().includes(busca);
+    const matchSaude = !saude || r.saude.includes(saude);
+    const matchSit = !situacao || (r.situacao||'').toUpperCase().includes(situacao);
+    return matchBusca && matchSaude && matchSit;
+  });
+
+  currentPage = 1;
+  renderPage();
+}
+
+let logoDataUrl = null;
+
+function clearLogo() {
+  logoDataUrl = null;
+  document.getElementById('logoInput').value = '';
+  document.getElementById('logoPreview').style.display = 'none';
+  document.getElementById('logoPlaceholder').style.display = '';
+  document.getElementById('logoDropZone').style.borderColor = '#ccc';
+}
+
+function previewLogo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    logoDataUrl = e.target.result;
+    document.getElementById('logoImg').src = logoDataUrl;
+    document.getElementById('logoPreview').style.display = 'block';
+    document.getElementById('logoPlaceholder').style.display = 'none';
+    document.getElementById('logoDropZone').style.borderColor = '#00B37A';
+  };
+  reader.readAsDataURL(file);
+}
+
+function openPdfModal() {
+  document.getElementById('pdfModal').style.display = 'flex';
+}
+
+function closePdfModal() {
+  document.getElementById('pdfModal').style.display = 'none';
+}
+
+async function captureElement(el) {
+  return await html2canvas(el, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false
+  });
+}
+
+async function generatePDF() {
+  const btn = document.getElementById('btnGerarPDF');
+  btn.textContent = 'Gerando...';
+  btn.disabled = true;
+
+  const headerActions = document.querySelector('.header-actions');
+  const pagination    = document.getElementById('pagination');
+  const filterRow     = document.querySelector('.table-header > div');
+  headerActions.style.visibility = 'hidden';
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const W=210, H=297, PAD=12, FOOTER_H=10;
+    const USABLE_H = H - PAD - FOOTER_H;
+    const IMG_W    = W - PAD*2;
+
+    const clientName = document.getElementById('pdfClientName').value ||
+                       document.getElementById('headerParceiro').textContent;
+    const dateStr    = document.getElementById('footerDate').textContent;
+    const GREEN      = [0,179,122];
+
+    // ── Converte logo da Helena para dataUrl uma vez ──
+    let helenaLogoUrl = null;
+    try {
+      const resp = await fetch('/mnt/user-data/uploads/logo_helena.png');
+      if (resp.ok) {
+        const blob = await resp.blob();
+        helenaLogoUrl = await new Promise(r => { const fr=new FileReader(); fr.onload=e=>r(e.target.result); fr.readAsDataURL(blob); });
+      }
+    } catch(e) {}
+
+    // ── Footer ──
+    const addFooter = () => {
+      // fundo branco para o rodapé
+      pdf.setFillColor(255,255,255); pdf.rect(0,H-FOOTER_H,W,FOOTER_H,'F');
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); pdf.setTextColor(180,178,175);
+      pdf.text(`${clientName} · ${dateStr}`, W/2, H-3.5, {align:'center'});
+      // "Helena CRM" em verde no canto direito
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(...GREEN);
+      pdf.text('Helena CRM', W-PAD, H-3.5, {align:'right'});
+      pdf.setFont('helvetica','normal');
+    };
+
+    // ── Nova página branca ──
+    const newPage = () => {
+      pdf.addPage();
+      pdf.setFillColor(255,255,255); pdf.rect(0,0,W,H,'F');
+    };
+
+    // ── Captura elemento como canvas → retorna {canvas, imgH} ──
+    const capture = async (el) => {
+      const canvas = await html2canvas(el, {scale:2, useCORS:true, backgroundColor:'#ffffff', logging:false});
+      const imgH   = (canvas.height * IMG_W) / canvas.width;
+      return {canvas, imgH};
+    };
+
+    // ── Adiciona um elemento inteiro — se não couber na página atual, vai para nova página ──
+    // Elementos grandes (> USABLE_H) são fatiados por página completa
+    const addEl = async (el, curY) => {
+      if (!el) return curY;
+      const {canvas, imgH} = await capture(el);
+
+      // Se cabe inteiro na página atual
+      if (curY + imgH <= USABLE_H) {
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', PAD, curY, IMG_W, imgH);
+        return curY + imgH + 5;
+      }
+
+      // Não cabe — se o elemento é menor que uma página completa, vai para nova página
+      if (imgH <= USABLE_H - PAD) {
+        addFooter();
+        newPage();
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', PAD, PAD, IMG_W, imgH);
+        return PAD + imgH + 5;
+      }
+
+      // Elemento grande (ex: tabela longa) — fatia por página
+      let drawnH = 0;
+      let y = curY;
+      while (drawnH < imgH - 0.5) {
+        const sliceMM = Math.min(imgH - drawnH, USABLE_H - y);
+        const slicePx = (sliceMM / imgH) * canvas.height;
+        const srcYpx  = (drawnH / imgH) * canvas.height;
+        const sl = document.createElement('canvas');
+        sl.width=canvas.width; sl.height=Math.ceil(slicePx);
+        sl.getContext('2d').drawImage(canvas, 0, -srcYpx);
+        pdf.addImage(sl.toDataURL('image/png'), 'PNG', PAD, y, IMG_W, sliceMM);
+        drawnH += sliceMM;
+        y += sliceMM;
+        if (drawnH < imgH - 0.5) {
+          addFooter(); newPage(); y = PAD;
+        }
+      }
+      return y + 5;
+    };
+
+    // ── Label de seção ──
+    const addLabel = (label, y) => {
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(8); pdf.setTextColor(...GREEN);
+      pdf.text(label.toUpperCase(), PAD, y+5);
+      pdf.setDrawColor(220,220,220); pdf.setLineWidth(0.2);
+      pdf.line(PAD, y+7, W-PAD, y+7);
+      pdf.setFont('helvetica','normal');
+      return y + 11;
+    };
+
+    // ════════════════════════════════
+    // ── CAPA ──
+    // ════════════════════════════════
+    pdf.setFillColor(...GREEN); pdf.rect(0,0,W,H,'F');
+    const cardTop=55, cardHt=150;
+    pdf.setFillColor(255,255,255); pdf.roundedRect(16,cardTop,W-32,cardHt,10,10,'F');
+
+    let ly = cardTop+18;
+    if (logoDataUrl) {
+      const tmpImg = new Image();
+      await new Promise(r=>{tmpImg.onload=r; tmpImg.src=logoDataUrl;});
+      const ratio = tmpImg.width/tmpImg.height;
+      const lw=Math.min(90,ratio*38), lh=lw/ratio;
+      try { pdf.addImage(logoDataUrl,'PNG',W/2-lw/2,ly,lw,lh,'','FAST'); ly+=lh+12; }
+      catch(e){ly+=8;}
+    }
+
+    pdf.setTextColor(26,25,22); pdf.setFont('helvetica','bold'); pdf.setFontSize(20);
+    pdf.text('Relatório de Evolução', W/2, ly,    {align:'center'});
+    pdf.text('do Atendimento',        W/2, ly+11, {align:'center'});
+    pdf.setDrawColor(...GREEN); pdf.setLineWidth(0.5);
+    pdf.line(40,ly+17,W-40,ly+17);
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(12); pdf.setTextColor(107,104,96);
+    pdf.text(clientName, W/2, ly+28, {align:'center'});
+    pdf.text(dateStr,    W/2, ly+39, {align:'center'});
+
+    // Rodapé da capa — "Gerado por Helena CRM" com logo se disponível
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(8); pdf.setTextColor(255,255,255);
+    pdf.text('Gerado por', W/2, H-14, {align:'center'});
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); pdf.setTextColor(255,255,255);
+    pdf.text('Helena CRM', W/2, H-7, {align:'center'});
+
+    // ════════════════════════════════
+    // ── PÁG 2+: MÉTRICAS + GRÁFICOS ──
+    // ════════════════════════════════
+    newPage();
+    let curY = PAD;
+
+    curY = addLabel('Visão Geral', curY);
+    curY = await addEl(document.querySelectorAll('.metrics-row')[0], curY);
+    curY = await addEl(document.querySelectorAll('.metrics-row')[1], curY);
+
+    // Carteira (CSV) — só se estiver visível
+    const carteiraEl = document.getElementById('carteiraSection');
+    if (carteiraEl && carteiraEl.style.display !== 'none') {
+      curY = addLabel('Gestão de Carteira', curY);
+      curY = await addEl(carteiraEl.querySelector('.metrics-row'), curY);
+    }
+
+    curY = addLabel('Análise por Saúde', curY);
+    for (const card of document.querySelectorAll('.chart-card')) {
+      const {imgH} = await capture(card);
+      // Quebra página só se restar menos de 60mm OU se o gráfico não couber
+      if (curY + imgH > USABLE_H || (USABLE_H - curY < 60 && imgH > 60)) {
+        addFooter(); newPage(); curY = PAD;
+      }
+      curY = await addEl(card, curY);
+    }
+    addFooter();
+
+    // ════════════════════════════════
+    // ── TABELA — blocos de 25 linhas ──
+    // ════════════════════════════════
+    if (pagination) pagination.style.display='none';
+    if (filterRow)  filterRow.style.display='none';
+
+    const tbody = document.getElementById('tableBody');
+    const savedHTML = tbody.innerHTML;
+    const tableHeader = document.querySelector('.table-header');
+    const tableHeadEl = document.querySelector('thead');
+
+    // Só quebra página se restar menos de 80mm — senão continua na mesma
+    if (USABLE_H - curY < 80) { addFooter(); newPage(); curY = PAD; }
+    curY = addLabel('Detalhe por Empresa', curY);
+
+    // Captura o header da tabela (título + subtítulo)
+    const {canvas:hCanvas, imgH:hImgH} = await capture(tableHeader);
+    pdf.addImage(hCanvas.toDataURL('image/png'),'PNG',PAD,curY,IMG_W,hImgH);
+    curY += hImgH + 1;
+
+    // Captura o thead (linha de colunas)
+    const {canvas:thCanvas, imgH:thImgH} = await capture(tableHeadEl);
+
+    // Renderiza em blocos de 25 linhas
+    const CHUNK = 25;
+    for (let i=0; i<allRows.length; i+=CHUNK) {
+      const chunk = allRows.slice(i, i+CHUNK);
+      tbody.innerHTML = chunk.map(d=>`
+        <tr>
+          <td>${d.empresa}</td><td>${sitBadge(d.situacao)}</td>
+          <td class="num" style="color:#6b6860;font-size:10.5px">${d.faturamento}</td>
+          <td class="num" style="text-align:right">${d.recSemana}</td>
+          <td class="num" style="text-align:right">${d.ateSemana}</td>
+          <td style="min-width:100px">${taxaBar(d.recSemana,d.ateSemana)}</td>
+          <td class="num" style="text-align:right">${d.recMes}</td>
+          <td>${saudeBadge(d.saude)}</td>
+        </tr>`).join('');
+
+      const {canvas:cCanvas, imgH:cImgH} = await capture(tbody);
+
+      // Se não cabe, nova página com thead repetido
+      if (curY + cImgH > USABLE_H) {
+        addFooter(); newPage(); curY = PAD;
+        pdf.addImage(thCanvas.toDataURL('image/png'),'PNG',PAD,curY,IMG_W,thImgH);
+        curY += thImgH + 1;
+      }
+      pdf.addImage(cCanvas.toDataURL('image/png'),'PNG',PAD,curY,IMG_W,cImgH);
+      curY += cImgH;
+    }
+
+    tbody.innerHTML = savedHTML;
+    if (pagination) pagination.style.display='';
+    if (filterRow)  filterRow.style.display='';
+    addFooter();
+
+    // ════════════════════════════════
+    // ── INSIGHTS ──
+    // ════════════════════════════════
+    const insEl = document.getElementById('insightsCard');
+    const {imgH:insH} = await capture(insEl);
+    if (curY + 11 + insH > USABLE_H || USABLE_H - curY < 60) { addFooter(); newPage(); curY = PAD; }
+    curY = addLabel('Análise Inteligente', curY);
+    curY = await addEl(insEl, curY);
+    addFooter();
+
+    // ════════════════════════════════
+    // ── ANOTAÇÕES ──
+    // ════════════════════════════════
+    const anotacoes = document.getElementById('anotacoes').value.trim();
+    if (anotacoes) {
+      newPage();
+      let ay = PAD;
+      ay = addLabel('Observações', ay);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(11); pdf.setTextColor(60,58,55);
+      pdf.text(pdf.splitTextToSize(anotacoes,IMG_W), PAD, ay);
+      addFooter();
+    }
+
+    pdf.save(`relatorio-${clientName.replace(/\s+/g,'-')}-${dateStr.replace(/\//g,'-')}.pdf`);
+    closePdfModal();
+
+  } catch(err) {
+    alert('Erro ao gerar PDF: '+err.message); console.error(err);
+  } finally {
+    headerActions.style.visibility='';
+    btn.textContent='Gerar PDF'; btn.disabled=false;
+  }
 }
 
 const dz = document.getElementById('dropZone');
@@ -560,6 +1147,15 @@ dz.addEventListener('drop', e=>{
   e.preventDefault();dz.classList.remove('drag');
   const f = e.dataTransfer.files[0];
   if(f) processFile(f);
+});
+
+const dzCSV = document.getElementById('dropZoneCSV');
+dzCSV.addEventListener('dragover', e=>{e.preventDefault();dzCSV.classList.add('drag')});
+dzCSV.addEventListener('dragleave', ()=>dzCSV.classList.remove('drag'));
+dzCSV.addEventListener('drop', e=>{
+  e.preventDefault();dzCSV.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if(f){ document.getElementById('csvInput').files; handleCSV({target:{files:[f]}}); }
 });
 </script>
 </body>
