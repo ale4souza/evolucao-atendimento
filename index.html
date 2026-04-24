@@ -289,16 +289,7 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
       </div>
     </div>
   </div>
-
-  <p class="section-title">Análise Inteligente <span class="ins-tag">IA</span></p>
-  <div class="insights-card" id="insightsCard">
-    <div class="ins-header">
-      <div class="ins-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></div>
-      <div>
-        <div class="ins-title">Insights do relatório</div>
-        <div class="ins-sub">Gerado por Claude com base nos dados carregados</div>
-      </div>
-    </div>
+   </div>
     <div class="ins-body" id="insightsBody">
       <div class="ins-loading"><div class="ins-dots"><span></span><span></span><span></span></div>Analisando os dados...</div>
     </div>
@@ -580,7 +571,6 @@ function renderDashboard(data, fileName) {
   filterTable();
 
   document.getElementById('dashboard').style.display = 'block';
-  generateInsights(data);
   renderCarteira(parceiro);
 }
 
@@ -705,43 +695,7 @@ function renderCarteira(parceiroExcel) {
   document.getElementById('carteiraSection').style.display = 'block';
 }
 
-async function generateInsights(data) {
-  const body = document.getElementById('insightsBody');
-
-  const totRec    = data.reduce((a,d)=>a+d.recSemana,0);
-  const totAte    = data.reduce((a,d)=>a+d.ateSemana,0);
-  const totRecAnt = data.reduce((a,d)=>a+d.recSemanaAnt,0);
-  const totAteAnt = data.reduce((a,d)=>a+d.ateSemanaAnt,0);
-  const taxaGeral = totRec>0 ? Math.round((totAte/totRec)*100) : 0;
-  const taxaAnt   = totRecAnt>0 ? Math.round((totAteAnt/totRecAnt)*100) : 0;
-  const varRec    = totRecAnt>0 ? Math.round(((totRec-totRecAnt)/totRecAnt)*100) : null;
-  const varAte    = totAteAnt>0 ? Math.round(((totAte-totAteAnt)/totAteAnt)*100) : null;
-
-  const canceled   = data.filter(d=>(d.situacao||'').toUpperCase().includes('CANCEL'));
-  const ativas     = data.filter(d=>(d.situacao||'').toUpperCase().includes('COMPLETED'));
-  const churn      = data.filter(d=>d.saude.includes('RISCO')||d.saude.includes('CHURN'));
-  const atencao    = data.filter(d=>d.saude.includes('REQUER')||d.saude.includes('ATEN'));
-  const ok         = data.filter(d=>d.saude.includes('OK')&&!d.saude.includes('REQUER')&&!d.saude.includes('RISCO'));
-  const baixoUso   = data.filter(d=>d.saude.includes('BAIXO')||d.saude.includes('USO'));
-  const cresceram  = data.filter(d=>d.recSemanaAnt>0&&d.recSemana>d.recSemanaAnt*1.1).sort((a,b)=>b.recSemana-a.recSemana);
-  const cairam     = data.filter(d=>d.recSemanaAnt>0&&d.recSemana<d.recSemanaAnt*0.7&&d.recSemanaAnt>5).sort((a,b)=>a.recSemana-b.recSemana);
-  const semAtend   = data.filter(d=>d.recSemana>0&&d.ateSemana===0);
-  const baixaTaxa  = data.filter(d=>d.recSemana>5&&(d.ateSemana/d.recSemana)<0.7);
-
-  const paragrafos = [];
-
-  // ── 1. Resumo geral da semana ──
-  let p1 = `Esta semana foram recebidas ${totRec.toLocaleString('pt-BR')} mensagens`;
-  if (varRec !== null) p1 += ` (${varRec>=0?'+':''}${varRec}% vs semana passada)`;
-  p1 += `, com ${totAte.toLocaleString('pt-BR')} atendidas — taxa de ${taxaGeral}%`;
-  if (taxaAnt > 0) {
-    const diffTaxa = taxaGeral - taxaAnt;
-    p1 += ` (${diffTaxa>=0?'+':''}${diffTaxa}pp em relação à semana anterior, que foi ${taxaAnt}%)`;
-  }
-  p1 += taxaGeral>=90 ? '. Desempenho excelente.' : taxaGeral>=75 ? '. Desempenho satisfatório, mas há espaço para melhora.' : '. Desempenho abaixo do esperado.';
-  paragrafos.push(p1);
-
-  // ── 2. Saúde da base ──
+ // ── 2. Saúde da base ──
   const pctOk    = Math.round((ok.length/data.length)*100);
   const pctChurn = Math.round((churn.length/data.length)*100);
   let p2 = `A base conta com ${data.length} empresas (${ativas.length} ativas, ${canceled.length} canceladas). `;
@@ -1108,15 +1062,6 @@ async function generatePDF() {
     addFooter();
 
     // ════════════════════════════════
-    // ── INSIGHTS ──
-    // ════════════════════════════════
-    const insEl = document.getElementById('insightsCard');
-    const {imgH:insH} = await capture(insEl);
-    if (curY + 11 + insH > USABLE_H || USABLE_H - curY < 60) { addFooter(); newPage(); curY = PAD; }
-    curY = addLabel('Análise Inteligente', curY);
-    curY = await addEl(insEl, curY);
-    addFooter();
-
     // ════════════════════════════════
     // ── ANOTAÇÕES ──
     // ════════════════════════════════
