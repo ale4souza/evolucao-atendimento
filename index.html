@@ -108,6 +108,29 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 .col-error{background:#FCEBEB;border-color:#F09595}
 .col-error p{color:#A32D2D}
 
+/* Modal drilldown saúde */
+#saudeModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+#saudeModal.open{display:flex}
+.saude-modal-box{background:#fff;border-radius:16px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden;margin:auto}
+.saude-modal-head{padding:20px 24px 16px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.saude-modal-head h3{font-size:15px;font-weight:700;color:#1a1916}
+.saude-modal-head .count-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px}
+.saude-modal-close{width:28px;height:28px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.12);background:#f5f4f0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#6b6860;flex-shrink:0}
+.saude-modal-close:hover{background:#e4e0d8}
+.saude-modal-search{padding:12px 24px;border-bottom:0.5px solid rgba(0,0,0,0.06)}
+.saude-modal-search input{width:100%;padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;font-family:inherit}
+.saude-modal-list{max-height:420px;overflow-y:auto}
+.saude-modal-item{display:flex;align-items:center;justify-content:space-between;padding:11px 24px;border-bottom:0.5px solid rgba(0,0,0,0.05);gap:12px}
+.saude-modal-item:last-child{border-bottom:none}
+.saude-modal-item:hover{background:#f5f4f0}
+.saude-modal-empresa{font-size:13px;font-weight:500;color:#1a1916;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saude-modal-stats{display:flex;gap:12px;align-items:center;flex-shrink:0}
+.saude-stat{text-align:right}
+.saude-stat .sv{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.saude-stat .sl{font-size:9px;color:#6b6860;margin-top:1px}
+.saude-modal-empty{padding:32px 24px;text-align:center;color:#6b6860;font-size:13px}
+.saude-modal-foot{padding:12px 24px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:10px;color:#aaa;text-align:center}
+
 @media(max-width:768px){.metrics-row{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.chart-card.full{grid-column:1}}
 @media print{
   body{background:#fff}
@@ -310,6 +333,32 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 
 </div>
 
+<!-- Modal drilldown saúde -->
+<div id="saudeModal" onclick="closeSaudeModal(event)">
+  <div class="saude-modal-box" onclick="event.stopPropagation()">
+    <div class="saude-modal-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="saudeModalIcon" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div>
+          <h3 id="saudeModalTitle">—</h3>
+          <div style="font-size:10px;color:#6b6860;margin-top:1px">Empresas neste status de saúde</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="saudeModalPill" class="count-pill">—</span>
+        <button class="saude-modal-close" onclick="closeSaudeModal()">✕</button>
+      </div>
+    </div>
+    <div class="saude-modal-search">
+      <input type="text" id="saudeModalSearch" placeholder="Filtrar empresas..." oninput="filterSaudeModal()" />
+    </div>
+    <div class="saude-modal-list" id="saudeModalList"></div>
+    <div class="saude-modal-foot">Clique fora para fechar · Ordenado por mensagens recebidas na semana</div>
+  </div>
+</div>
+
 <!-- Modal exportar PDF -->
 <div id="pdfModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:16px;padding:32px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
@@ -450,7 +499,6 @@ function renderDashboard(data, fileName) {
   document.getElementById('mAte').textContent = totAte.toLocaleString('pt-BR');
   document.getElementById('mAteSub').textContent = `Taxa geral: ${taxaGeral}%`;
 
-  // Setas de tendência vs semana passada
   const totRecAnt = data.reduce((a,d)=>a+d.recSemanaAnt,0);
   const totAteAnt = data.reduce((a,d)=>a+d.ateSemanaAnt,0);
 
@@ -485,23 +533,46 @@ function renderDashboard(data, fileName) {
   const saudeColors = {'OK':'#639922','Requer Atenção':'#EF9F27','Risco de Churn':'#E24B4A','Baixo Uso':'#378ADD','Outro':'#888780'};
   const saudeKeys = ['Risco de Churn','Requer Atenção','Baixo Uso','OK'].filter(k=>saudeCounts[k]);
 
+  // Guarda referência dos dados por label para o drilldown
+  window._saudeDataMap = {};
+  data.forEach(d => {
+    let key = 'Outro';
+    if (d.saude.includes('OK') && !d.saude.includes('REQUER') && !d.saude.includes('RISCO')) key = 'OK';
+    else if (d.saude.includes('REQUER') || d.saude.includes('ATEN')) key = 'Requer Atenção';
+    else if (d.saude.includes('RISCO') || d.saude.includes('CHURN')) key = 'Risco de Churn';
+    else if (d.saude.includes('BAIXO') || d.saude.includes('USO')) key = 'Baixo Uso';
+    if (!window._saudeDataMap[key]) window._saudeDataMap[key] = [];
+    window._saudeDataMap[key].push(d);
+  });
+
   destroyChart('saude');
-  charts.saude = new Chart(document.getElementById('cSaude'), {
+  const cSaudeEl = document.getElementById('cSaude');
+  cSaudeEl.style.cursor = 'pointer';
+  charts.saude = new Chart(cSaudeEl, {
     type:'bar',
     data:{
       labels: saudeKeys,
       datasets:[{
         data: saudeKeys.map(k=>saudeCounts[k]),
         backgroundColor: saudeKeys.map(k=>saudeColors[k]||'#888'),
+        hoverBackgroundColor: saudeKeys.map(k=>(saudeColors[k]||'#888')+'cc'),
         borderRadius:6
       }]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} empresas`}}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} empresa${ctx.parsed.y!==1?'s':''} · clique para ver`}}
+      },
       scales:{
         x:{ticks:{font:{size:11}}, grid:{display:false}},
         y:{ticks:{font:{size:10},stepSize:1}, grid:{color:'rgba(0,0,0,0.05)'}}
+      },
+      onClick(evt, elements) {
+        if (!elements.length) return;
+        const label = saudeKeys[elements[0].index];
+        openSaudeModal(label);
       }
     }
   });
@@ -530,8 +601,6 @@ function renderDashboard(data, fileName) {
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}
   });
 
-  // Top 10 por volume do mês passado para o gráfico mensal
-  // Top 10 piores em taxa de atendimento mensal (com pelo menos 5 mensagens recebidas)
   const top10Mensal = [...data]
     .filter(d=>d.recMes>=5)
     .sort((a,b)=>(a.ateMes/a.recMes)-(b.ateMes/b.recMes))
@@ -603,8 +672,7 @@ function processFile(file) {
 }
 
 // ── CSV ──
-let csvData = null; // dados do CSV carregado
-let carteiraChart = null;
+let csvData = null;
 
 function removeCSV() {
   csvData = null;
@@ -616,6 +684,25 @@ function removeCSV() {
   document.getElementById('carteiraSection').style.display = 'none';
 }
 
+// ── CORREÇÃO 1: Parser CSV robusto que respeita campos entre aspas ──
+function parseCSVLine(line) {
+  const result = [];
+  let current = '', inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 function handleCSV(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -623,27 +710,26 @@ function handleCSV(event) {
   reader.onload = e => {
     try {
       const text = e.target.result;
-      const lines = text.split('\n').filter(l=>l.trim());
-      const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+      const lines = text.split('\n').filter(l => l.trim());
+      const headers = parseCSVLine(lines[0]);
       csvData = lines.slice(1).map(line => {
-        const vals = line.split(',').map(v=>v.trim().replace(/^"|"$/g,''));
+        const vals = parseCSVLine(line);
         const obj = {};
-        headers.forEach((h,i) => obj[h] = vals[i]||'');
+        headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
         return obj;
-      }).filter(r=>r['Parceiro']);
+      }).filter(r => r['Parceiro']);
 
       document.getElementById('csvStatus').textContent = `✓ ${file.name} — ${csvData.length} parceiros`;
       document.getElementById('dropZoneCSV').style.borderColor = '#3B6D11';
       document.getElementById('btnCSVLabel').textContent = 'Trocar CSV';
       document.getElementById('btnRemoveCSV').style.display = '';
 
-      // Se o Excel já foi carregado, renderiza a seção
       if (document.getElementById('dashboard').style.display !== 'none') {
         const parceiro = document.getElementById('headerParceiro').textContent;
         renderCarteira(parceiro);
       }
     } catch(err) {
-      document.getElementById('csvStatus').textContent = 'Erro ao ler CSV';
+      document.getElementById('csvStatus').textContent = 'Erro ao ler CSV: ' + err.message;
     }
   };
   reader.readAsText(file, 'UTF-8');
@@ -655,44 +741,67 @@ function normalizeName(s) {
     .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
 }
 
+// ── CORREÇÃO 2: Matching por similaridade Jaccard ──
 function renderCarteira(parceiroExcel) {
   if (!csvData || !parceiroExcel) return;
 
-  // Busca a linha do CSV cujo Parceiro bate com o parceiro do Excel
   const normExcel = normalizeName(parceiroExcel);
-  const row = csvData.find(r => {
-    const normCSV = normalizeName(r['Parceiro']);
-    return normCSV.includes(normExcel) || normExcel.includes(normCSV) ||
-           normCSV.split(' ').some(w=>w.length>3 && normExcel.includes(w));
-  });
+  const wordsExcel = normExcel.split(' ').filter(w => w.length > 3);
 
-  if (!row) {
+  function matchScore(csvParceiro) {
+    const raw = (csvParceiro || '');
+    // Versão sem prefixo de colchete: "[Atendee] Nome Empresa" → "Nome Empresa"
+    const normFull     = normalizeName(raw);
+    const normStripped = normalizeName(raw.replace(/^\[.*?\]\s*/, ''));
+
+    // 1. Match exato (com ou sem prefixo)
+    if (normFull === normExcel || normStripped === normExcel) return 100;
+
+    // 2. Substring bidirecional — só se ambos forem curtos (evita falsos positivos)
+    if (Math.min(normFull.length, normExcel.length) <= 20) {
+      if (normFull.includes(normExcel) || normExcel.includes(normFull)) return 70;
+      if (normStripped && (normStripped.includes(normExcel) || normExcel.includes(normStripped))) return 60;
+    }
+
+    // 3. Similaridade Jaccard por palavras com mais de 3 chars
+    const wordsCSV = normFull.split(' ').filter(w => w.length > 3);
+    if (!wordsExcel.length || !wordsCSV.length) return 0;
+    const setCSV       = new Set(wordsCSV);
+    const intersection = wordsExcel.filter(w => setCSV.has(w)).length;
+    const union        = new Set([...wordsExcel, ...wordsCSV]).size;
+    const jaccard      = intersection / union;
+    // Exige pelo menos 50% de palavras em comum para evitar falsos matches
+    return jaccard >= 0.5 ? Math.round(jaccard * 50) : 0;
+  }
+
+  // Escolhe a linha com maior pontuação
+  let bestRow = null, bestScore = 0;
+  for (const r of csvData) {
+    const s = matchScore(r['Parceiro']);
+    if (s > bestScore) { bestScore = s; bestRow = r; }
+  }
+
+  if (!bestRow || bestScore === 0) {
     document.getElementById('carteiraSection').style.display = 'none';
     return;
   }
 
-  const adq  = parseInt(row['Adquiridas'])||0;
-  const per  = Math.abs(parseInt(row['Perdidas'])||0);
-  const trac = parseInt(row['Tração'])||0;
-  const pat  = parseInt(row['Patamar'])||0;
-  const churnRaw = parseFloat(row['Churn (%)'])||0;
+  const row  = bestRow;
+  const adq  = parseInt(row['Adquiridas']) || 0;
+  const per  = Math.abs(parseInt(row['Perdidas']) || 0);
+  const trac = parseInt(row['Tração']) || 0;
+  const pat  = parseInt(row['Patamar']) || 0;
   const churnPct = pat > 0 ? ((per / pat) * 100).toFixed(1) + '%' : '—';
-  const ciclo = row['Ciclo']||'—';
-  const tend  = row['Tendência']||'—';
-  const status= row['Status Financeiro']||'—';
 
   document.getElementById('cAdquiridas').textContent = adq;
-  document.getElementById('cPerdidas').textContent = per;
-  document.getElementById('cTracao').textContent = (trac>=0?'+':'')+trac;
-  document.getElementById('cTracao').style.color = trac>=0?'#3B6D11':'#A32D2D';
-  document.getElementById('cChurn').textContent = churnPct;
-
+  document.getElementById('cPerdidas').textContent   = per;
+  document.getElementById('cTracao').textContent     = (trac >= 0 ? '+' : '') + trac;
+  document.getElementById('cTracao').style.color     = trac >= 0 ? '#3B6D11' : '#A32D2D';
+  document.getElementById('cChurn').textContent      = churnPct;
   document.getElementById('carteiraSection').style.display = 'block';
 }
 
-
 let allRows = [];
-
 let currentPage = 1;
 const PAGE_SIZE = 20;
 let filteredRows = [];
@@ -815,7 +924,6 @@ async function generatePDF() {
     const dateStr    = document.getElementById('footerDate').textContent;
     const GREEN      = [0,179,122];
 
-    // ── Converte logo da Helena para dataUrl uma vez ──
     let helenaLogoUrl = null;
     try {
       const resp = await fetch('/mnt/user-data/uploads/logo_helena.png');
@@ -825,44 +933,35 @@ async function generatePDF() {
       }
     } catch(e) {}
 
-    // ── Footer ──
     const addFooter = () => {
-      // fundo branco para o rodapé
       pdf.setFillColor(255,255,255); pdf.rect(0,H-FOOTER_H,W,FOOTER_H,'F');
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); pdf.setTextColor(180,178,175);
       pdf.text(`${clientName} · ${dateStr}`, W/2, H-3.5, {align:'center'});
-      // "Helena CRM" em verde no canto direito
       pdf.setFont('helvetica','bold'); pdf.setFontSize(7); pdf.setTextColor(...GREEN);
       pdf.text('Helena CRM', W-PAD, H-3.5, {align:'right'});
       pdf.setFont('helvetica','normal');
     };
 
-    // ── Nova página branca ──
     const newPage = () => {
       pdf.addPage();
       pdf.setFillColor(255,255,255); pdf.rect(0,0,W,H,'F');
     };
 
-    // ── Captura elemento como canvas → retorna {canvas, imgH} ──
     const capture = async (el) => {
       const canvas = await html2canvas(el, {scale:1.3, useCORS:true, backgroundColor:'#ffffff', logging:false});
       const imgH   = (canvas.height * IMG_W) / canvas.width;
       return {canvas, imgH};
     };
 
-    // ── Adiciona um elemento inteiro — se não couber na página atual, vai para nova página ──
-    // Elementos grandes (> USABLE_H) são fatiados por página completa
     const addEl = async (el, curY) => {
       if (!el) return curY;
       const {canvas, imgH} = await capture(el);
 
-      // Se cabe inteiro na página atual
       if (curY + imgH <= USABLE_H) {
         pdf.addImage(canvas.toDataURL('image/jpeg', 0.82), 'JPEG', PAD, curY, IMG_W, imgH);
         return curY + imgH + 5;
       }
 
-      // Não cabe — se o elemento é menor que uma página completa, vai para nova página
       if (imgH <= USABLE_H - PAD) {
         addFooter();
         newPage();
@@ -870,7 +969,6 @@ async function generatePDF() {
         return PAD + imgH + 5;
       }
 
-      // Elemento grande (ex: tabela longa) — fatia por página
       let drawnH = 0;
       let y = curY;
       while (drawnH < imgH - 0.5) {
@@ -890,7 +988,6 @@ async function generatePDF() {
       return y + 5;
     };
 
-    // ── Label de seção ──
     const addLabel = (label, y) => {
       pdf.setFont('helvetica','bold'); pdf.setFontSize(8); pdf.setTextColor(...GREEN);
       pdf.text(label.toUpperCase(), PAD, y+5);
@@ -900,9 +997,7 @@ async function generatePDF() {
       return y + 11;
     };
 
-    // ════════════════════════════════
     // ── CAPA ──
-    // ════════════════════════════════
     pdf.setFillColor(...GREEN); pdf.rect(0,0,W,H,'F');
     const cardTop=55, cardHt=150;
     pdf.setFillColor(255,255,255); pdf.roundedRect(16,cardTop,W-32,cardHt,10,10,'F');
@@ -926,15 +1021,12 @@ async function generatePDF() {
     pdf.text(clientName, W/2, ly+28, {align:'center'});
     pdf.text(dateStr,    W/2, ly+39, {align:'center'});
 
-    // Rodapé da capa — "Gerado por Helena CRM" com logo se disponível
     pdf.setFont('helvetica','normal'); pdf.setFontSize(8); pdf.setTextColor(255,255,255);
     pdf.text('Gerado por', W/2, H-14, {align:'center'});
     pdf.setFont('helvetica','bold'); pdf.setFontSize(9); pdf.setTextColor(255,255,255);
     pdf.text('Helena CRM', W/2, H-7, {align:'center'});
 
-    // ════════════════════════════════
     // ── PÁG 2+: MÉTRICAS + GRÁFICOS ──
-    // ════════════════════════════════
     newPage();
     let curY = PAD;
 
@@ -942,7 +1034,6 @@ async function generatePDF() {
     curY = await addEl(document.querySelectorAll('.metrics-row')[0], curY);
     curY = await addEl(document.querySelectorAll('.metrics-row')[1], curY);
 
-    // Carteira (CSV) — só se estiver visível
     const carteiraEl = document.getElementById('carteiraSection');
     if (carteiraEl && carteiraEl.style.display !== 'none') {
       curY = addLabel('Gestão de Carteira', curY);
@@ -952,7 +1043,6 @@ async function generatePDF() {
     curY = addLabel('Análise por Saúde', curY);
     for (const card of document.querySelectorAll('.chart-card')) {
       const {imgH} = await capture(card);
-      // Quebra página só se restar menos de 60mm OU se o gráfico não couber
       if (curY + imgH > USABLE_H || (USABLE_H - curY < 60 && imgH > 60)) {
         addFooter(); newPage(); curY = PAD;
       }
@@ -960,9 +1050,7 @@ async function generatePDF() {
     }
     addFooter();
 
-    // ════════════════════════════════
-    // ── TABELA — blocos de 25 linhas ──
-    // ════════════════════════════════
+    // ── TABELA ──
     if (pagination) pagination.style.display='none';
     if (filterRow)  filterRow.style.display='none';
 
@@ -971,19 +1059,15 @@ async function generatePDF() {
     const tableHeader = document.querySelector('.table-header');
     const tableHeadEl = document.querySelector('thead');
 
-    // Só quebra página se restar menos de 80mm — senão continua na mesma
     if (USABLE_H - curY < 80) { addFooter(); newPage(); curY = PAD; }
     curY = addLabel('Detalhe por Empresa', curY);
 
-    // Captura o header da tabela (título + subtítulo)
     const {canvas:hCanvas, imgH:hImgH} = await capture(tableHeader);
     pdf.addImage(hCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,hImgH);
     curY += hImgH + 1;
 
-    // Captura o thead (linha de colunas)
     const {canvas:thCanvas, imgH:thImgH} = await capture(tableHeadEl);
 
-    // Renderiza em blocos de 25 linhas
     const CHUNK = 25;
     for (let i=0; i<allRows.length; i+=CHUNK) {
       const chunk = allRows.slice(i, i+CHUNK);
@@ -1000,7 +1084,6 @@ async function generatePDF() {
 
       const {canvas:cCanvas, imgH:cImgH} = await capture(tbody);
 
-      // Se não cabe, nova página com thead repetido
       if (curY + cImgH > USABLE_H) {
         addFooter(); newPage(); curY = PAD;
         pdf.addImage(thCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,thImgH);
@@ -1015,9 +1098,7 @@ async function generatePDF() {
     if (filterRow)  filterRow.style.display='';
     addFooter();
 
-    // ════════════════════════════════
     // ── ANOTAÇÕES ──
-    // ════════════════════════════════
     const anotacoes = document.getElementById('anotacoes').value.trim();
     if (anotacoes) {
       newPage();
@@ -1039,6 +1120,82 @@ async function generatePDF() {
   }
 }
 
+// ── Modal drilldown saúde ──
+let _saudeModalRows = [];
+
+const saudeModalMeta = {
+  'OK':             { bg:'#EAF3DE', color:'#3B6D11', iconBg:'#639922' },
+  'Requer Atenção': { bg:'#FAEEDA', color:'#854F0B', iconBg:'#EF9F27' },
+  'Risco de Churn': { bg:'#FCEBEB', color:'#A32D2D', iconBg:'#E24B4A' },
+  'Baixo Uso':      { bg:'#E6F1FB', color:'#185FA5', iconBg:'#378ADD' },
+  'Outro':          { bg:'#f0ede6', color:'#6b6860', iconBg:'#888780' },
+};
+
+function openSaudeModal(label) {
+  const rows = (window._saudeDataMap || {})[label] || [];
+  _saudeModalRows = [...rows].sort((a,b) => b.recSemana - a.recSemana);
+
+  const meta = saudeModalMeta[label] || saudeModalMeta['Outro'];
+  document.getElementById('saudeModalTitle').textContent = label;
+  document.getElementById('saudeModalIcon').style.background = meta.iconBg;
+  const pill = document.getElementById('saudeModalPill');
+  pill.textContent = `${rows.length} empresa${rows.length!==1?'s':''}`;
+  pill.style.background = meta.bg;
+  pill.style.color = meta.color;
+  document.getElementById('saudeModalSearch').value = '';
+  renderSaudeModalList(_saudeModalRows);
+  document.getElementById('saudeModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('saudeModalSearch').focus(), 80);
+}
+
+function closeSaudeModal(e) {
+  if (e && e.target !== document.getElementById('saudeModal') && e.type === 'click') return;
+  document.getElementById('saudeModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function filterSaudeModal() {
+  const q = document.getElementById('saudeModalSearch').value.toLowerCase();
+  const filtered = q ? _saudeModalRows.filter(r => r.empresa.toLowerCase().includes(q)) : _saudeModalRows;
+  renderSaudeModalList(filtered);
+}
+
+function renderSaudeModalList(rows) {
+  const el = document.getElementById('saudeModalList');
+  if (!rows.length) {
+    el.innerHTML = '<div class="saude-modal-empty">Nenhuma empresa encontrada.</div>';
+    return;
+  }
+  el.innerHTML = rows.map(d => {
+    const taxaSem = d.recSemana > 0 ? Math.round((d.ateSemana/d.recSemana)*100) + '%' : '—';
+    const taxaColor = d.recSemana === 0 ? '#aaa'
+      : d.ateSemana/d.recSemana >= 0.8 ? '#3B6D11'
+      : d.ateSemana/d.recSemana >= 0.5 ? '#854F0B' : '#A32D2D';
+    return `<div class="saude-modal-item">
+      <span class="saude-modal-empresa" title="${d.empresa}">${d.empresa}</span>
+      <div class="saude-modal-stats">
+        <div class="saude-stat">
+          <div class="sv">${d.recSemana}</div>
+          <div class="sl">Rec. semana</div>
+        </div>
+        <div class="saude-stat">
+          <div class="sv">${d.ateSemana}</div>
+          <div class="sl">Ate. semana</div>
+        </div>
+        <div class="saude-stat" style="min-width:36px">
+          <div class="sv" style="color:${taxaColor}">${taxaSem}</div>
+          <div class="sl">Taxa</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSaudeModal();
+});
+
 const dz = document.getElementById('dropZone');
 dz.addEventListener('dragover', e=>{e.preventDefault();dz.classList.add('drag')});
 dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
@@ -1054,7 +1211,7 @@ dzCSV.addEventListener('dragleave', ()=>dzCSV.classList.remove('drag'));
 dzCSV.addEventListener('drop', e=>{
   e.preventDefault();dzCSV.classList.remove('drag');
   const f = e.dataTransfer.files[0];
-  if(f){ document.getElementById('csvInput').files; handleCSV({target:{files:[f]}}); }
+  if(f){ handleCSV({target:{files:[f]}}); }
 });
 </script>
 </body>
