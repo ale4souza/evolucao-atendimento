@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="logo-icon.png">
 <title>Relatório de Atendimento — Dinâmico</title>
+<link rel="icon" type="image/png" href="logo-icon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -400,7 +400,6 @@ const COLS = {
   ateMes: ['atendidas_no_mes_passado','atendidas no mes passado','ate mes'],
   saude: ['saude_cliente','saude cliente','saúde','saude'],
 };
-
 
 let charts = {};
 
@@ -928,14 +927,7 @@ async function generatePDF() {
     const dateStr    = document.getElementById('footerDate').textContent;
     const GREEN      = [0,179,122];
 
-    let helenaLogoUrl = null;
-    try {
-      const resp = await fetch('/mnt/user-data/uploads/logo_helena.png');
-      if (resp.ok) {
-        const blob = await resp.blob();
-        helenaLogoUrl = await new Promise(r => { const fr=new FileReader(); fr.onload=e=>r(e.target.result); fr.readAsDataURL(blob); });
-      }
-    } catch(e) {}
+    // Helena logo embarcada via HELENA_LOGO_B64
 
     const addFooter = () => {
       pdf.setFillColor(255,255,255); pdf.rect(0,H-FOOTER_H,W,FOOTER_H,'F');
@@ -1001,34 +993,148 @@ async function generatePDF() {
       return y + 11;
     };
 
-    // ── CAPA ──
-    pdf.setFillColor(...GREEN); pdf.rect(0,0,W,H,'F');
-    const cardTop=55, cardHt=150;
-    pdf.setFillColor(255,255,255); pdf.roundedRect(16,cardTop,W-32,cardHt,10,10,'F');
+    // ════════════════════════════════════════
+    // ── CAPA — design profissional ──
+    // ════════════════════════════════════════
+    const NAVY   = [13,  27,  51 ];   // azul escuro principal
+    const NAVY2  = [19,  40,  75 ];   // azul médio para gradiente/painel
+    const GGREEN = [0,   179, 122];   // verde Helena
+    const WHITE  = [255, 255, 255];
 
-    let ly = cardTop+18;
-    if (logoDataUrl) {
-      const tmpImg = new Image();
-      await new Promise(r=>{tmpImg.onload=r; tmpImg.src=logoDataUrl;});
-      const ratio = tmpImg.width/tmpImg.height;
-      const lw=Math.min(90,ratio*38), lh=lw/ratio;
-      try { pdf.addImage(logoDataUrl,'PNG',W/2-lw/2,ly,lw,lh,'','FAST'); ly+=lh+12; }
-      catch(e){ly+=8;}
+    // Fundo azul escuro full-page
+    pdf.setFillColor(...NAVY);
+    pdf.rect(0, 0, W, H, 'F');
+
+    // Painel lateral esquerdo — faixa vertical mais clara
+    pdf.setFillColor(...NAVY2);
+    pdf.rect(0, 0, 52, H, 'F');
+
+    // Linha de acento verde vertical na borda do painel
+    pdf.setFillColor(...GGREEN);
+    pdf.rect(52, 0, 1.5, H, 'F');
+
+    // Círculos decorativos no canto inferior direito (sutis)
+    pdf.setDrawColor(255,255,255); pdf.setLineWidth(0.3); pdf.setGState(pdf.GState({opacity:0.06}));
+    pdf.circle(W+10, H+10, 80, 'S');
+    pdf.circle(W+10, H+10, 55, 'S');
+    pdf.setGState(pdf.GState({opacity:1}));
+
+    // (decoração de números removida)
+
+    // ── Remove fundo preto da logo Helena ──
+    async function logoSemFundo(dataUrl) {
+      const img = new Image();
+      await new Promise(r => { img.onload = r; img.src = dataUrl; });
+      const cv = document.createElement('canvas');
+      cv.width = img.width; cv.height = img.height;
+      const ctx = cv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const d = ctx.getImageData(0, 0, cv.width, cv.height);
+      for (let i = 0; i < d.data.length; i += 4) {
+        const r = d.data[i], g = d.data[i+1], b = d.data[i+2];
+        if (r < 40 && g < 40 && b < 40) d.data[i+3] = 0;
+      }
+      ctx.putImageData(d, 0, 0);
+      return cv.toDataURL('image/png');
     }
 
-    pdf.setTextColor(26,25,22); pdf.setFont('helvetica','bold'); pdf.setFontSize(20);
-    pdf.text('Relatório de Evolução', W/2, ly,    {align:'center'});
-    pdf.text('do Atendimento',        W/2, ly+11, {align:'center'});
-    pdf.setDrawColor(...GREEN); pdf.setLineWidth(0.5);
-    pdf.line(40,ly+17,W-40,ly+17);
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(12); pdf.setTextColor(107,104,96);
-    pdf.text(clientName, W/2, ly+28, {align:'center'});
-    pdf.text(dateStr,    W/2, ly+39, {align:'center'});
+    // Helena logo — painel lateral, centralizada verticalmente (parte superior)
+    try {
+      const helTransparent = await logoSemFundo(HELENA_LOGO_B64);
+      const helImg = new Image();
+      await new Promise(r => { helImg.onload = r; helImg.src = helTransparent; });
+      const helR = helImg.width / helImg.height;
+      const hlW = 34, hlH = hlW / helR;
+      pdf.addImage(helTransparent, 'PNG', (52 - hlW)/2, 28, hlW, hlH, 'helside', 'FAST');
+    } catch(e) {}
 
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(8); pdf.setTextColor(255,255,255);
-    pdf.text('Gerado por', W/2, H-14, {align:'center'});
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(9); pdf.setTextColor(255,255,255);
-    pdf.text('Helena CRM', W/2, H-7, {align:'center'});
+    // ── Bloco principal de conteúdo (área direita) ──
+    const CX = 66; // x de início do conteúdo (após painel lateral)
+    const CW = W - CX - 16; // largura disponível
+
+    // Tag "RELATÓRIO" pequena no topo
+    pdf.setFillColor(...GGREEN);
+    pdf.setGState(pdf.GState({opacity:0.15}));
+    pdf.roundedRect(CX, 32, 56, 7, 2, 2, 'F');
+    pdf.setGState(pdf.GState({opacity:1}));
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(6.5); pdf.setTextColor(...GGREEN);
+    pdf.text('RELATÓRIO DE ATENDIMENTO', CX + 4, 37.5);
+
+    // Título principal — grande e bold
+    pdf.setTextColor(...WHITE);
+    pdf.setFont('helvetica','bold'); pdf.setFontSize(28);
+    pdf.text('Evolução do', CX, 58);
+    pdf.text('Atendimento', CX, 72);
+
+    // Linha de acento verde sob o título
+    pdf.setFillColor(...GGREEN);
+    pdf.rect(CX, 76, 28, 1.2, 'F');
+
+    // Nome do parceiro / cliente
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
+    pdf.setTextColor(180, 210, 255);
+    pdf.text(clientName, CX, 90);
+
+    // Data
+    pdf.setFontSize(9); pdf.setTextColor(120, 155, 200);
+    pdf.text(dateStr, CX, 99);
+
+    // ── Logo do cliente (se fornecida) — bloco central com moldura ──
+    let clientLogoY = 118;
+    if (logoDataUrl) {
+      // Moldura/card semitransparente
+      const cardH = 58;
+      pdf.setFillColor(255,255,255);
+      pdf.setGState(pdf.GState({opacity:0.08}));
+      pdf.roundedRect(CX, clientLogoY - 4, CW, cardH, 5, 5, 'F');
+      pdf.setGState(pdf.GState({opacity:1}));
+
+      try {
+        const tmpImg = new Image();
+        await new Promise(r => { tmpImg.onload = r; tmpImg.src = logoDataUrl; });
+        const ratio = tmpImg.width / tmpImg.height;
+        // Limita altura em 36mm e largura em 80% da área disponível
+        const maxH = 36, maxW = CW * 0.75;
+        let lh = maxH, lw = maxH * ratio;
+        if (lw > maxW) { lw = maxW; lh = maxW / ratio; }
+        const lx = CX + (CW - lw) / 2;
+        const ly = clientLogoY - 4 + (cardH - lh) / 2;
+        pdf.addImage(logoDataUrl, 'PNG', lx, ly, lw, lh, 'clientlogo', 'FAST');
+        clientLogoY += cardH + 14;
+      } catch(e) { clientLogoY += 28; }
+    } else {
+      clientLogoY = 130;
+    }
+
+    // ── Divisória tracejada ──
+    pdf.setDrawColor(...GGREEN); pdf.setLineWidth(0.4);
+    pdf.setGState(pdf.GState({opacity:0.4}));
+    pdf.line(CX, clientLogoY + 4, W - 16, clientLogoY + 4);
+    pdf.setGState(pdf.GState({opacity:1}));
+
+    // ── Metadados em grid (3 colunas) ──
+    const metaY = clientLogoY + 16;
+    const metaCols = [
+      { label: 'PARCEIRO',    value: clientName },
+      { label: 'GERADO EM',   value: dateStr },
+      { label: 'DOCUMENTO',   value: 'Confidencial' },
+    ];
+    const colW = CW / 3;
+    metaCols.forEach((m, i) => {
+      const mx = CX + i * colW;
+      pdf.setFont('helvetica','bold'); pdf.setFontSize(6.5); pdf.setTextColor(...GGREEN);
+      pdf.text(m.label, mx, metaY);
+      pdf.setFont('helvetica','normal'); pdf.setFontSize(8.5); pdf.setTextColor(...WHITE);
+      const val = m.value.length > 22 ? m.value.slice(0,22)+'…' : m.value;
+      pdf.text(val, mx, metaY + 6);
+    });
+
+    // ── Linha de rodapé da capa ──
+    pdf.setFillColor(...NAVY2);
+    pdf.rect(0, H - 22, W, 22, 'F');
+    pdf.setFillColor(...GGREEN); pdf.rect(52, H - 22, 1.5, 22, 'F');
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); pdf.setTextColor(120,155,200);
+    pdf.text('Gerado por Helena CRM  ·  Uso interno e confidencial', CX, H - 9);
 
     // ── PÁG 2+: MÉTRICAS + GRÁFICOS ──
     newPage();
