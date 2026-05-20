@@ -230,15 +230,72 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     </div>
   </div>
 
-  <div id="carteiraSection" style="display:none;margin-bottom:28px">
-    <p class="section-title">Gestão de Carteira — Mês Atual</p>
-    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
-      <div class="metric-card"><div class="lbl">Adquiridas no mês</div><div class="val" id="cAdquiridas" style="color:#3B6D11">—</div><div class="sub">novas contas</div></div>
-      <div class="metric-card"><div class="lbl">Perdidas no mês</div><div class="val" id="cPerdidas" style="color:#A32D2D">—</div><div class="sub">contas canceladas</div></div>
-      <div class="metric-card"><div class="lbl">Tração líquida</div><div class="val" id="cTracao" style="color:#00C853">—</div><div class="sub">adquiridas − perdidas</div></div>
-      <div class="metric-card"><div class="lbl">Churn do mês</div><div class="val" id="cChurn" style="color:#854F0B">—</div><div class="sub">taxa de churn mensal</div></div>
+<div id="carteiraSection" style="display:none;margin-bottom:28px">
+  <p class="section-title" id="carteiraSectionTitle">Gestão de Carteira — Mês Atual</p>
+
+  <!-- Mês atual (sempre visível quando carteiraSection está aberto) -->
+  <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
+    <div class="metric-card">
+      <div class="lbl">Adquiridas no mês</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="val" id="cAdquiridas" style="color:#3B6D11">—</div>
+        <span id="cAdquiridasDelta" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="sub">novas contas</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Perdidas no mês</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="val" id="cPerdidas" style="color:#A32D2D">—</div>
+        <span id="cPerdidasDelta" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="sub">contas canceladas</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Tração líquida</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="val" id="cTracao" style="color:#00C853">—</div>
+        <span id="cTracaoDelta" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="sub">adquiridas − perdidas</div>
+    </div>
+    <div class="metric-card">
+      <div class="lbl">Churn do mês</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="val" id="cChurn" style="color:#854F0B">—</div>
+        <span id="cChurnDelta" style="font-size:11px;font-weight:600"></span>
+      </div>
+      <div class="sub">taxa de churn mensal</div>
     </div>
   </div>
+
+  <!-- Mês anterior — só aparece quando há dois meses no CSV -->
+  <div id="carteiraAntRow" style="display:none;margin-top:10px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:8px" id="carteiraAntLabel">Mês anterior</div>
+    <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
+      <div class="metric-card" style="opacity:.7">
+        <div class="lbl">Adquiridas</div>
+        <div class="val" id="cAdqAnt" style="color:#6b6860;font-size:22px">—</div>
+        <div class="sub">mês anterior</div>
+      </div>
+      <div class="metric-card" style="opacity:.7">
+        <div class="lbl">Perdidas</div>
+        <div class="val" id="cPerAnt" style="color:#6b6860;font-size:22px">—</div>
+        <div class="sub">mês anterior</div>
+      </div>
+      <div class="metric-card" style="opacity:.7">
+        <div class="lbl">Tração líquida</div>
+        <div class="val" id="cTracAnt" style="color:#6b6860;font-size:22px">—</div>
+        <div class="sub">mês anterior</div>
+      </div>
+      <div class="metric-card" style="opacity:.7">
+        <div class="lbl">Churn</div>
+        <div class="val" id="cChurnAnt" style="color:#6b6860;font-size:22px">—</div>
+        <div class="sub">mês anterior</div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <p class="section-title">Análise por Saúde</p>
   <div class="charts-grid">
@@ -744,7 +801,27 @@ function normalizeName(s) {
     .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
 }
 
-// ── CORREÇÃO 2: Matching por similaridade Jaccard ──
+// ── CORREÇÃO 3: renderCarteira com suporte a 1 ou 2 meses ──
+function parseMonthStr(s) {
+  // "abr. de 2026" → Date comparável. Aceita "jan.", "fev.", etc.
+  const meses = {
+    'jan':0,'fev':1,'mar':2,'abr':3,'mai':4,'jun':5,
+    'jul':6,'ago':7,'set':8,'out':9,'nov':10,'dez':11
+  };
+  const norm = (s||'').toLowerCase().replace(/[.\s]/g,' ').replace(/\s+/g,' ').trim();
+  // ex: "abr  de 2026"
+  const parts = norm.split(' ').filter(Boolean);
+  let month = -1, year = 0;
+  for (const p of parts) {
+    const key = p.slice(0,3);
+    if (meses[key] !== undefined) month = meses[key];
+    const n = parseInt(p);
+    if (n > 1900) year = n;
+  }
+  if (month < 0 || !year) return null;
+  return new Date(year, month, 1);
+}
+
 function renderCarteira(parceiroExcel) {
   if (!csvData || !parceiroExcel) return;
 
@@ -753,54 +830,103 @@ function renderCarteira(parceiroExcel) {
 
   function matchScore(csvParceiro) {
     const raw = (csvParceiro || '');
-    // Versão sem prefixo de colchete: "[Atendee] Nome Empresa" → "Nome Empresa"
     const normFull     = normalizeName(raw);
     const normStripped = normalizeName(raw.replace(/^\[.*?\]\s*/, ''));
-
-    // 1. Match exato (com ou sem prefixo)
     if (normFull === normExcel || normStripped === normExcel) return 100;
-
-    // 2. Substring bidirecional — só se ambos forem curtos (evita falsos positivos)
     if (Math.min(normFull.length, normExcel.length) <= 20) {
       if (normFull.includes(normExcel) || normExcel.includes(normFull)) return 70;
       if (normStripped && (normStripped.includes(normExcel) || normExcel.includes(normStripped))) return 60;
     }
-
-    // 3. Similaridade Jaccard por palavras com mais de 3 chars
     const wordsCSV = normFull.split(' ').filter(w => w.length > 3);
     if (!wordsExcel.length || !wordsCSV.length) return 0;
     const setCSV       = new Set(wordsCSV);
     const intersection = wordsExcel.filter(w => setCSV.has(w)).length;
     const union        = new Set([...wordsExcel, ...wordsCSV]).size;
     const jaccard      = intersection / union;
-    // Exige pelo menos 50% de palavras em comum para evitar falsos matches
     return jaccard >= 0.5 ? Math.round(jaccard * 50) : 0;
   }
 
-  // Escolhe a linha com maior pontuação
-  let bestRow = null, bestScore = 0;
-  for (const r of csvData) {
-    const s = matchScore(r['Parceiro']);
-    if (s > bestScore) { bestScore = s; bestRow = r; }
-  }
-
-  if (!bestRow || bestScore === 0) {
+  // Agrupar todas as linhas do parceiro matched
+  const scored = csvData.map(r => ({ r, s: matchScore(r['Parceiro']) })).filter(x => x.s > 0);
+  if (!scored.length) {
     document.getElementById('carteiraSection').style.display = 'none';
     return;
   }
+  const bestScore = Math.max(...scored.map(x => x.s));
+  const matchedRows = scored.filter(x => x.s === bestScore).map(x => x.r);
 
-  const row  = bestRow;
-  const adq  = parseInt(row['Adquiridas']) || 0;
-  const per  = Math.abs(parseInt(row['Perdidas']) || 0);
-  const trac = parseInt(row['Tração']) || 0;
-  const pat  = parseInt(row['Patamar']) || 0;
-  const churnPct = pat > 0 ? ((per / pat) * 100).toFixed(1) + '%' : '—';
+  // Ordenar por data do mês (mais antigo → mais recente)
+  const withDate = matchedRows
+    .map(r => ({ r, d: parseMonthStr(r['Mês'] || '') }))
+    .filter(x => x.d !== null)
+    .sort((a, b) => a.d - b.d);
 
-  document.getElementById('cAdquiridas').textContent = adq;
-  document.getElementById('cPerdidas').textContent   = per;
-  document.getElementById('cTracao').textContent     = (trac >= 0 ? '+' : '') + trac;
-  document.getElementById('cTracao').style.color     = trac >= 0 ? '#3B6D11' : '#A32D2D';
-  document.getElementById('cChurn').textContent      = churnPct;
+  // Se nenhum tem data parseável, usa a primeira linha (comportamento original)
+  const rows = withDate.length ? withDate.map(x => x.r) : matchedRows;
+
+  function extractRow(row) {
+    const adq   = parseInt(row['Adquiridas']) || 0;
+    const per   = Math.abs(parseInt(row['Perdidas']) || 0);
+    const trac  = parseInt(row['Tração']) || 0;
+    const pat   = parseInt(row['Patamar']) || 0;
+    const churnRaw = parseFloat(row['Churn (Mês)']) || 0;
+    const churnPct = pat > 0
+      ? ((per / pat) * 100).toFixed(1) + '%'
+      : (churnRaw > 0 ? (churnRaw * 100).toFixed(1) + '%' : '—');
+    return { adq, per, trac, pat, churnPct, churnRaw };
+  }
+
+  function deltaHtml(cur, prev, isPercent = false) {
+    if (prev === null || prev === undefined) return '';
+    const diff = isPercent
+      ? parseFloat((cur - prev).toFixed(2))
+      : cur - prev;
+    if (diff === 0) return `<span style="color:#aaa;font-size:11px;font-weight:600">= 0</span>`;
+    const up    = diff > 0;
+    const arrow = up ? '↑' : '↓';
+    const color = up ? '#185FA5' : '#A32D2D';
+    const label = isPercent
+      ? `${arrow} ${Math.abs(diff).toFixed(1)}pp`
+      : `${arrow} ${Math.abs(diff)}`;
+    return `<span style="color:${color};font-size:11px;font-weight:600">${label}</span>`;
+  }
+
+  const atual = extractRow(rows[rows.length - 1]);
+  const temDoisMeses = rows.length >= 2;
+  const ant   = temDoisMeses ? extractRow(rows[rows.length - 2]) : null;
+
+  // Mês atual
+  document.getElementById('cAdquiridas').textContent = atual.adq;
+  document.getElementById('cPerdidas').textContent   = atual.per;
+  document.getElementById('cTracao').textContent     = (atual.trac >= 0 ? '+' : '') + atual.trac;
+  document.getElementById('cTracao').style.color     = atual.trac >= 0 ? '#3B6D11' : '#A32D2D';
+  document.getElementById('cChurn').textContent      = atual.churnPct;
+
+  // Deltas (só se tiver dois meses)
+  document.getElementById('cAdquiridasDelta').innerHTML = ant ? deltaHtml(atual.adq, ant.adq)       : '';
+  document.getElementById('cPerdidasDelta').innerHTML   = ant ? deltaHtml(atual.per, ant.per)       : '';
+  document.getElementById('cTracaoDelta').innerHTML     = ant ? deltaHtml(atual.trac, ant.trac)     : '';
+  document.getElementById('cChurnDelta').innerHTML      = ant ? deltaHtml(atual.churnRaw, ant.churnRaw, true) : '';
+
+  // Título da seção
+  const mesAtualLabel = rows[rows.length-1]['Mês'] ? ` — ${rows[rows.length-1]['Mês']}` : ' — Mês Atual';
+  document.getElementById('carteiraSectionTitle').textContent =
+    `Gestão de Carteira${mesAtualLabel}`;
+
+  // Linha do mês anterior
+  if (temDoisMeses && ant) {
+    document.getElementById('cAdqAnt').textContent   = ant.adq;
+    document.getElementById('cPerAnt').textContent   = ant.per;
+    document.getElementById('cTracAnt').textContent  = (ant.trac >= 0 ? '+' : '') + ant.trac;
+    document.getElementById('cTracAnt').style.color  = ant.trac >= 0 ? '#3B6D11' : '#A32D2D';
+    document.getElementById('cChurnAnt').textContent = ant.churnPct;
+    const mesAntLabel = rows[rows.length-2]['Mês'] || 'Mês anterior';
+    document.getElementById('carteiraAntLabel').textContent = mesAntLabel;
+    document.getElementById('carteiraAntRow').style.display = 'block';
+  } else {
+    document.getElementById('carteiraAntRow').style.display = 'none';
+  }
+
   document.getElementById('carteiraSection').style.display = 'block';
 }
 
