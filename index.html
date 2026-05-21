@@ -85,6 +85,10 @@ tbody td:last-child{padding-right:22px;text-align:center}
 .bar-fill{height:100%;border-radius:100px;background:#00C853}
 .bar-val{font-size:10px;color:#6b6860;min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
 
+.qf-btn{padding:5px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:100px;font-size:11px;font-weight:600;background:#fff;color:#6b6860;cursor:pointer;transition:all .15s;white-space:nowrap}
+.qf-btn:hover{background:#f5f4f0;border-color:#aaa;color:#1a1916}
+.qf-btn.qf-active{background:#1a1916;color:#fff;border-color:#1a1916}
+
 footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justify-content:space-between;align-items:center;color:#6b6860;font-size:11px}
 
 .insights-card{background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:24px 28px;margin-bottom:28px}
@@ -230,72 +234,101 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     </div>
   </div>
 
-<div id="carteiraSection" style="display:none;margin-bottom:28px">
-  <p class="section-title" id="carteiraSectionTitle">Gestão de Carteira — Mês Atual</p>
+  <!-- ── CARTEIRA ── -->
+  <div id="carteiraSection" style="display:none;margin-bottom:28px">
+    <p class="section-title" id="carteiraSectionTitle">Gestão de Carteira — Mês Atual</p>
 
-  <!-- Mês atual (sempre visível quando carteiraSection está aberto) -->
-  <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
-    <div class="metric-card">
-      <div class="lbl">Adquiridas no mês</div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <div class="val" id="cAdquiridas" style="color:#3B6D11">—</div>
-        <span id="cAdquiridasDelta" style="font-size:11px;font-weight:600"></span>
-      </div>
-      <div class="sub">novas contas</div>
-    </div>
-    <div class="metric-card">
-      <div class="lbl">Perdidas no mês</div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <div class="val" id="cPerdidas" style="color:#A32D2D">—</div>
-        <span id="cPerdidasDelta" style="font-size:11px;font-weight:600"></span>
-      </div>
-      <div class="sub">contas canceladas</div>
-    </div>
-    <div class="metric-card">
-      <div class="lbl">Tração líquida</div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <div class="val" id="cTracao" style="color:#00C853">—</div>
-        <span id="cTracaoDelta" style="font-size:11px;font-weight:600"></span>
-      </div>
-      <div class="sub">adquiridas − perdidas</div>
-    </div>
-    <div class="metric-card">
-      <div class="lbl">Churn do mês</div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <div class="val" id="cChurn" style="color:#854F0B">—</div>
-        <span id="cChurnDelta" style="font-size:11px;font-weight:600"></span>
-      </div>
-      <div class="sub">taxa de churn mensal</div>
-    </div>
-  </div>
-
-  <!-- Mês anterior — só aparece quando há dois meses no CSV -->
-  <div id="carteiraAntRow" style="display:none;margin-top:10px">
-    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:8px" id="carteiraAntLabel">Mês anterior</div>
+    <!-- Mês atual — sempre em destaque -->
     <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:0">
-      <div class="metric-card" style="opacity:.7">
-        <div class="lbl">Adquiridas</div>
-        <div class="val" id="cAdqAnt" style="color:#6b6860;font-size:22px">—</div>
-        <div class="sub">mês anterior</div>
+      <div class="metric-card">
+        <div class="lbl">Adquiridas no mês</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div class="val" id="cAdquiridas" style="color:#3B6D11">—</div>
+          <span id="cAdquiridasDelta" style="font-size:11px;font-weight:600"></span>
+        </div>
+        <div class="sub">novas contas</div>
       </div>
-      <div class="metric-card" style="opacity:.7">
-        <div class="lbl">Perdidas</div>
-        <div class="val" id="cPerAnt" style="color:#6b6860;font-size:22px">—</div>
-        <div class="sub">mês anterior</div>
+      <div class="metric-card">
+        <div class="lbl">Perdidas no mês</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div class="val" id="cPerdidas" style="color:#A32D2D">—</div>
+          <span id="cPerdidasDelta" style="font-size:11px;font-weight:600"></span>
+        </div>
+        <div class="sub">contas canceladas</div>
       </div>
-      <div class="metric-card" style="opacity:.7">
+      <div class="metric-card">
         <div class="lbl">Tração líquida</div>
-        <div class="val" id="cTracAnt" style="color:#6b6860;font-size:22px">—</div>
-        <div class="sub">mês anterior</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div class="val" id="cTracao" style="color:#00C853">—</div>
+          <span id="cTracaoDelta" style="font-size:11px;font-weight:600"></span>
+        </div>
+        <div class="sub">adquiridas − perdidas</div>
       </div>
-      <div class="metric-card" style="opacity:.7">
-        <div class="lbl">Churn</div>
-        <div class="val" id="cChurnAnt" style="color:#6b6860;font-size:22px">—</div>
-        <div class="sub">mês anterior</div>
+      <div class="metric-card">
+        <div class="lbl">Churn do mês</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div class="val" id="cChurn" style="color:#854F0B">—</div>
+          <span id="cChurnDelta" style="font-size:11px;font-weight:600"></span>
+        </div>
+        <div class="sub">taxa de churn mensal</div>
+      </div>
+    </div>
+
+    <!-- Tabela comparativa mensal — aparece quando há 2 ou 3 meses -->
+    <div id="carteiraTabelaRow" style="display:none;margin-top:18px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:10px">Comparativo mensal</div>
+      <div style="background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:#f5f4f0">
+              <th style="padding:9px 16px;text-align:left;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;font-weight:700;white-space:nowrap">Mês</th>
+              <th style="padding:9px 16px;text-align:right;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;font-weight:700">Adquiridas</th>
+              <th style="padding:9px 16px;text-align:right;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;font-weight:700">Perdidas</th>
+              <th style="padding:9px 16px;text-align:right;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;font-weight:700">Tração</th>
+              <th style="padding:9px 16px;text-align:right;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;font-weight:700">Churn</th>
+              <th style="padding:9px 16px;text-align:center;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#6b6860;font-weight:700">Tendência</th>
+            </tr>
+          </thead>
+          <tbody id="carteiraTabelaBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Análise trimestral — aparece apenas com 3 meses -->
+    <div id="carteiraTriRow" style="display:none;margin-top:18px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#aaa;margin-bottom:10px">Análise Trimestral</div>
+      <!-- Totais acumulados -->
+      <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+        <div class="metric-card" style="border-color:#00B37A44;background:#f4fdf9">
+          <div class="lbl">Total adquiridas</div>
+          <div class="val" id="triAdquiridas" style="color:#3B6D11">—</div>
+          <div class="sub">acumulado 3 meses</div>
+        </div>
+        <div class="metric-card" style="border-color:#E2484844;background:#fdf5f5">
+          <div class="lbl">Total perdidas</div>
+          <div class="val" id="triPerdidas" style="color:#A32D2D">—</div>
+          <div class="sub">acumulado 3 meses</div>
+        </div>
+        <div class="metric-card" style="border-color:#00C85344">
+          <div class="lbl">Tração acumulada</div>
+          <div class="val" id="triTracao" style="color:#00C853">—</div>
+          <div class="sub">resultado líquido</div>
+        </div>
+        <div class="metric-card" style="border-color:#EF9F2744;background:#fdf9f2">
+          <div class="lbl">Churn médio</div>
+          <div class="val" id="triChurn" style="color:#854F0B">—</div>
+          <div class="sub">média dos 3 meses</div>
+        </div>
+      </div>
+      <!-- Tendência gráfica trimestral -->
+      <div style="background:#fff;border:0.5px solid rgba(0,0,0,0.08);border-radius:14px;padding:20px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:3px">Evolução trimestral</div>
+        <div style="font-size:10px;color:#6b6860;margin-bottom:16px">Adquiridas, perdidas e tração ao longo dos 3 meses</div>
+        <div style="position:relative;height:180px"><canvas id="cTrimestral"></canvas></div>
       </div>
     </div>
   </div>
-</div>
+  <!-- ── FIM CARTEIRA ── -->
 
   <p class="section-title">Análise por Saúde</p>
   <div class="charts-grid">
@@ -333,8 +366,30 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
   <p class="section-title">Detalhe por Empresa</p>
   <div class="table-card">
     <div class="table-header">
-      <h3>Empresas monitoradas</h3>
-      <p>Dados completos · Semana atual, semana passada e mês passado</p>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <div>
+          <h3>Empresas monitoradas</h3>
+          <p style="margin-bottom:0">Dados completos · Semana atual, semana passada e mês passado</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+          <button onclick="exportCSV()" class="btn-action btn-trocar" style="font-size:11px;padding:6px 12px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar CSV
+          </button>
+          <button onclick="downloadExcel()" id="btnDownloadExcel" class="btn-action btn-trocar" style="font-size:11px;padding:6px 12px;display:none;background:#EAF3DE;color:#3B6D11">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar Excel
+          </button>
+        </div>
+      </div>
+      <!-- Filtros rápidos por período -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="qf-btn qf-active" onclick="setQuickFilter('todos',this)">Todos</button>
+        <button class="qf-btn" onclick="setQuickFilter('semana',this)">Com atividade esta semana</button>
+        <button class="qf-btn" onclick="setQuickFilter('mes',this)">Com atividade no mês</button>
+        <button class="qf-btn" onclick="setQuickFilter('sem',this)"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#E24B4A;margin-right:4px;vertical-align:middle"></span>Sem atividade</button>
+      </div>
+      <!-- Filtros avançados -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
         <input type="text" id="filterBusca" placeholder="Buscar empresa..." oninput="filterTable()" style="flex:1;min-width:160px;padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none">
         <select id="filterSaude" onchange="filterTable()" style="padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;background:#fff;cursor:pointer">
@@ -499,25 +554,31 @@ function parseData(wb) {
       ateSemanaAnt: Number(r[colIdx.ateSemanaAnt]) || 0,
       recMes: Number(r[colIdx.recMes]) || 0,
       ateMes: Number(r[colIdx.ateMes]) || 0,
-      saude: String(r[colIdx.saude] || '').toUpperCase().trim(),
+      saude: String(r[colIdx.saude] || '').trim(),
     });
   }
   if (data.length === 0) throw new Error('Nenhuma linha de dados encontrada.');
   return data;
 }
 
+function normSaude(s) {
+  return (s||'').toUpperCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+}
 function saudeBadge(s) {
-  if (s.includes('OK') && !s.includes('REQUER') && !s.includes('RISCO')) return '<span class="badge b-ok">OK</span>';
-  if (s.includes('REQUER') || s.includes('ATEN')) return '<span class="badge b-wa">Requer Atenção</span>';
-  if (s.includes('RISCO') || s.includes('CHURN')) return '<span class="badge b-ch">Risco de Churn</span>';
-  if (s.includes('BAIXO') || s.includes('USO')) return '<span class="badge b-lo">Baixo Uso</span>';
+  const n = normSaude(s);
+  if (n.includes('OK') && !n.includes('REQUER') && !n.includes('RISCO')) return '<span class="badge b-ok">OK</span>';
+  if (n.includes('REQUER') || n.includes('ATEN')) return '<span class="badge b-wa">Requer Atenção</span>';
+  if (n.includes('RISCO') || n.includes('CHURN')) return '<span class="badge b-ch">Risco de Churn</span>';
+  if (n.includes('BAIXO') || n.includes('USO')) return '<span class="badge b-lo">Baixo Uso</span>';
   return `<span class="badge" style="background:#f0ede6;color:#6b6860">${s || '—'}</span>`;
 }
 
 function saudeColor(s) {
-  if (s.includes('OK') && !s.includes('REQUER') && !s.includes('RISCO')) return '#639922';
-  if (s.includes('REQUER') || s.includes('ATEN')) return '#EF9F27';
-  if (s.includes('RISCO') || s.includes('CHURN')) return '#E24B4A';
+  const n = normSaude(s);
+  if (n.includes('OK') && !n.includes('REQUER') && !n.includes('RISCO')) return '#639922';
+  if (n.includes('REQUER') || n.includes('ATEN')) return '#EF9F27';
+  if (n.includes('RISCO') || n.includes('CHURN')) return '#E24B4A';
   return '#378ADD';
 }
 
@@ -582,25 +643,26 @@ function renderDashboard(data, fileName) {
 
   const saudeCounts = {};
   data.forEach(d => {
+    const ns = normSaude(d.saude);
     let key = 'Outro';
-    if (d.saude.includes('OK') && !d.saude.includes('REQUER') && !d.saude.includes('RISCO')) key = 'OK';
-    else if (d.saude.includes('REQUER') || d.saude.includes('ATEN')) key = 'Requer Atenção';
-    else if (d.saude.includes('RISCO') || d.saude.includes('CHURN')) key = 'Risco de Churn';
-    else if (d.saude.includes('BAIXO') || d.saude.includes('USO')) key = 'Baixo Uso';
+    if (ns.includes('OK') && !ns.includes('REQUER') && !ns.includes('RISCO')) key = 'OK';
+    else if (ns.includes('REQUER') || ns.includes('ATEN')) key = 'Requer Atenção';
+    else if (ns.includes('RISCO') || ns.includes('CHURN')) key = 'Risco de Churn';
+    else if (ns.includes('BAIXO') || ns.includes('USO')) key = 'Baixo Uso';
     saudeCounts[key] = (saudeCounts[key]||0)+1;
   });
 
   const saudeColors = {'OK':'#639922','Requer Atenção':'#EF9F27','Risco de Churn':'#E24B4A','Baixo Uso':'#378ADD','Outro':'#888780'};
   const saudeKeys = ['Risco de Churn','Requer Atenção','Baixo Uso','OK'].filter(k=>saudeCounts[k]);
 
-  // Guarda referência dos dados por label para o drilldown
   window._saudeDataMap = {};
   data.forEach(d => {
+    const ns = normSaude(d.saude);
     let key = 'Outro';
-    if (d.saude.includes('OK') && !d.saude.includes('REQUER') && !d.saude.includes('RISCO')) key = 'OK';
-    else if (d.saude.includes('REQUER') || d.saude.includes('ATEN')) key = 'Requer Atenção';
-    else if (d.saude.includes('RISCO') || d.saude.includes('CHURN')) key = 'Risco de Churn';
-    else if (d.saude.includes('BAIXO') || d.saude.includes('USO')) key = 'Baixo Uso';
+    if (ns.includes('OK') && !ns.includes('REQUER') && !ns.includes('RISCO')) key = 'OK';
+    else if (ns.includes('REQUER') || ns.includes('ATEN')) key = 'Requer Atenção';
+    else if (ns.includes('RISCO') || ns.includes('CHURN')) key = 'Risco de Churn';
+    else if (ns.includes('BAIXO') || ns.includes('USO')) key = 'Baixo Uso';
     if (!window._saudeDataMap[key]) window._saudeDataMap[key] = [];
     window._saudeDataMap[key].push(d);
   });
@@ -683,15 +745,20 @@ function renderDashboard(data, fileName) {
   });
 
   const saudePrio = s => {
-    if (s.includes('RISCO')||s.includes('CHURN')) return 0;
-    if (s.includes('REQUER')||s.includes('ATEN')) return 1;
-    if (s.includes('BAIXO')||s.includes('USO')) return 2;
+    const n = normSaude(s);
+    if (n.includes('RISCO')||n.includes('CHURN')) return 0;
+    if (n.includes('REQUER')||n.includes('ATEN')) return 1;
+    if (n.includes('BAIXO')||n.includes('USO')) return 2;
     return 3;
   };
   allRows = [...data].sort((a,b)=>saudePrio(a.saude)-saudePrio(b.saude));
   document.getElementById('filterBusca').value = '';
   document.getElementById('filterSaude').value = '';
   document.getElementById('filterSituacao').value = '';
+  quickFilterMode = 'todos';
+  document.querySelectorAll('.qf-btn').forEach((b,i) => {
+    b.classList.toggle('qf-active', i === 0);
+  });
   filterTable();
 
   document.getElementById('dashboard').style.display = 'block';
@@ -718,6 +785,9 @@ function processFile(file) {
     try {
       const wb = XLSX.read(e.target.result, {type:'array'});
       const data = parseData(wb);
+      excelFileData = e.target.result;
+      excelFileName = file.name;
+      document.getElementById('btnDownloadExcel').style.display = '';
       document.getElementById('dropZone').style.display = 'none';
       document.getElementById('dropZoneCSV').style.display = 'none';
       document.getElementById('anotacoes').value = '';
@@ -744,7 +814,6 @@ function removeCSV() {
   document.getElementById('carteiraSection').style.display = 'none';
 }
 
-// ── CORREÇÃO 1: Parser CSV robusto que respeita campos entre aspas ──
 function parseCSVLine(line) {
   const result = [];
   let current = '', inQuotes = false;
@@ -779,7 +848,7 @@ function handleCSV(event) {
         return obj;
       }).filter(r => r['Parceiro']);
 
-      document.getElementById('csvStatus').textContent = `✓ ${file.name} — ${csvData.length} parceiros`;
+      document.getElementById('csvStatus').textContent = `✓ ${file.name} — ${csvData.length} linha${csvData.length !== 1 ? 's' : ''}`;
       document.getElementById('dropZoneCSV').style.borderColor = '#3B6D11';
       document.getElementById('btnCSVLabel').textContent = 'Trocar CSV';
       document.getElementById('btnRemoveCSV').style.display = '';
@@ -801,15 +870,13 @@ function normalizeName(s) {
     .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
 }
 
-// ── CORREÇÃO 3: renderCarteira com suporte a 1 ou 2 meses ──
+// ── Helpers de parse de mês ──
 function parseMonthStr(s) {
-  // "abr. de 2026" → Date comparável. Aceita "jan.", "fev.", etc.
   const meses = {
     'jan':0,'fev':1,'mar':2,'abr':3,'mai':4,'jun':5,
     'jul':6,'ago':7,'set':8,'out':9,'nov':10,'dez':11
   };
   const norm = (s||'').toLowerCase().replace(/[.\s]/g,' ').replace(/\s+/g,' ').trim();
-  // ex: "abr  de 2026"
   const parts = norm.split(' ').filter(Boolean);
   let month = -1, year = 0;
   for (const p of parts) {
@@ -822,14 +889,15 @@ function parseMonthStr(s) {
   return new Date(year, month, 1);
 }
 
+// ── renderCarteira com suporte a 1, 2 ou 3 meses ──
 function renderCarteira(parceiroExcel) {
   if (!csvData || !parceiroExcel) return;
 
-  const normExcel = normalizeName(parceiroExcel);
+  const normExcel  = normalizeName(parceiroExcel);
   const wordsExcel = normExcel.split(' ').filter(w => w.length > 3);
 
   function matchScore(csvParceiro) {
-    const raw = (csvParceiro || '');
+    const raw          = (csvParceiro || '');
     const normFull     = normalizeName(raw);
     const normStripped = normalizeName(raw.replace(/^\[.*?\]\s*/, ''));
     if (normFull === normExcel || normStripped === normExcel) return 100;
@@ -837,7 +905,7 @@ function renderCarteira(parceiroExcel) {
       if (normFull.includes(normExcel) || normExcel.includes(normFull)) return 70;
       if (normStripped && (normStripped.includes(normExcel) || normExcel.includes(normStripped))) return 60;
     }
-    const wordsCSV = normFull.split(' ').filter(w => w.length > 3);
+    const wordsCSV     = normFull.split(' ').filter(w => w.length > 3);
     if (!wordsExcel.length || !wordsCSV.length) return 0;
     const setCSV       = new Set(wordsCSV);
     const intersection = wordsExcel.filter(w => setCSV.has(w)).length;
@@ -846,85 +914,164 @@ function renderCarteira(parceiroExcel) {
     return jaccard >= 0.5 ? Math.round(jaccard * 50) : 0;
   }
 
-  // Agrupar todas as linhas do parceiro matched
-  const scored = csvData.map(r => ({ r, s: matchScore(r['Parceiro']) })).filter(x => x.s > 0);
-  if (!scored.length) {
-    document.getElementById('carteiraSection').style.display = 'none';
-    return;
-  }
-  const bestScore = Math.max(...scored.map(x => x.s));
+  const scored    = csvData.map(r => ({ r, s: matchScore(r['Parceiro']) })).filter(x => x.s > 0);
+  if (!scored.length) { document.getElementById('carteiraSection').style.display = 'none'; return; }
+  const bestScore   = Math.max(...scored.map(x => x.s));
   const matchedRows = scored.filter(x => x.s === bestScore).map(x => x.r);
 
-  // Ordenar por data do mês (mais antigo → mais recente)
+  // Ordenar por data (mais antigo → mais recente), pegar até 3 últimos
   const withDate = matchedRows
     .map(r => ({ r, d: parseMonthStr(r['Mês'] || '') }))
     .filter(x => x.d !== null)
     .sort((a, b) => a.d - b.d);
-
-  // Se nenhum tem data parseável, usa a primeira linha (comportamento original)
-  const rows = withDate.length ? withDate.map(x => x.r) : matchedRows;
+  const rows = (withDate.length ? withDate.map(x => x.r) : matchedRows).slice(-3);
 
   function extractRow(row) {
-    const adq   = parseInt(row['Adquiridas']) || 0;
-    const per   = Math.abs(parseInt(row['Perdidas']) || 0);
-    const trac  = parseInt(row['Tração']) || 0;
-    const pat   = parseInt(row['Patamar']) || 0;
+    const adq      = parseInt(row['Adquiridas']) || 0;
+    const per      = Math.abs(parseInt(row['Perdidas']) || 0);
+    const trac     = parseInt(row['Tração']) || 0;
+    const pat      = parseInt(row['Patamar']) || 0;
     const churnRaw = parseFloat(row['Churn (Mês)']) || 0;
     const churnPct = pat > 0
       ? ((per / pat) * 100).toFixed(1) + '%'
       : (churnRaw > 0 ? (churnRaw * 100).toFixed(1) + '%' : '—');
-    return { adq, per, trac, pat, churnPct, churnRaw };
+    const mesLabel = row['Mês'] || '—';
+    return { adq, per, trac, pat, churnPct, churnRaw, mesLabel };
   }
 
-  function deltaHtml(cur, prev, isPercent = false) {
+  function deltaHtml(cur, prev, isPercent) {
     if (prev === null || prev === undefined) return '';
-    const diff = isPercent
-      ? parseFloat((cur - prev).toFixed(2))
-      : cur - prev;
+    const diff = isPercent ? parseFloat((cur - prev).toFixed(2)) : cur - prev;
     if (diff === 0) return `<span style="color:#aaa;font-size:11px;font-weight:600">= 0</span>`;
-    const up    = diff > 0;
-    const arrow = up ? '↑' : '↓';
-    const color = up ? '#185FA5' : '#A32D2D';
+    const up = diff > 0;
     const label = isPercent
-      ? `${arrow} ${Math.abs(diff).toFixed(1)}pp`
-      : `${arrow} ${Math.abs(diff)}`;
-    return `<span style="color:${color};font-size:11px;font-weight:600">${label}</span>`;
+      ? `${up?'↑':'↓'} ${Math.abs(diff).toFixed(1)}pp`
+      : `${up?'↑':'↓'} ${Math.abs(diff)}`;
+    return `<span style="color:${up?'#185FA5':'#A32D2D'};font-size:11px;font-weight:600">${label}</span>`;
   }
 
-  const atual = extractRow(rows[rows.length - 1]);
-  const temDoisMeses = rows.length >= 2;
-  const ant   = temDoisMeses ? extractRow(rows[rows.length - 2]) : null;
+  function tracaoSeta(trac) {
+    if (trac > 0) return `<span style="color:#3B6D11;font-weight:700">↑ +${trac}</span>`;
+    if (trac < 0) return `<span style="color:#A32D2D;font-weight:700">↓ ${trac}</span>`;
+    return `<span style="color:#aaa;font-weight:600">= 0</span>`;
+  }
 
-  // Mês atual
+  const extracted = rows.map(extractRow);
+  const atual     = extracted[extracted.length - 1];
+  const ant       = extracted.length >= 2 ? extracted[extracted.length - 2] : null;
+
+  // ── Cards do mês atual ──
   document.getElementById('cAdquiridas').textContent = atual.adq;
   document.getElementById('cPerdidas').textContent   = atual.per;
   document.getElementById('cTracao').textContent     = (atual.trac >= 0 ? '+' : '') + atual.trac;
   document.getElementById('cTracao').style.color     = atual.trac >= 0 ? '#3B6D11' : '#A32D2D';
   document.getElementById('cChurn').textContent      = atual.churnPct;
+  document.getElementById('cAdquiridasDelta').innerHTML = ant ? deltaHtml(atual.adq,      ant.adq,      false) : '';
+  document.getElementById('cPerdidasDelta').innerHTML   = ant ? deltaHtml(atual.per,      ant.per,      false) : '';
+  document.getElementById('cTracaoDelta').innerHTML     = ant ? deltaHtml(atual.trac,     ant.trac,     false) : '';
+  document.getElementById('cChurnDelta').innerHTML      = ant ? deltaHtml(atual.churnRaw, ant.churnRaw, true)  : '';
 
-  // Deltas (só se tiver dois meses)
-  document.getElementById('cAdquiridasDelta').innerHTML = ant ? deltaHtml(atual.adq, ant.adq)       : '';
-  document.getElementById('cPerdidasDelta').innerHTML   = ant ? deltaHtml(atual.per, ant.per)       : '';
-  document.getElementById('cTracaoDelta').innerHTML     = ant ? deltaHtml(atual.trac, ant.trac)     : '';
-  document.getElementById('cChurnDelta').innerHTML      = ant ? deltaHtml(atual.churnRaw, ant.churnRaw, true) : '';
-
-  // Título da seção
-  const mesAtualLabel = rows[rows.length-1]['Mês'] ? ` — ${rows[rows.length-1]['Mês']}` : ' — Mês Atual';
+  // Título
   document.getElementById('carteiraSectionTitle').textContent =
-    `Gestão de Carteira${mesAtualLabel}`;
+    `Gestão de Carteira — ${atual.mesLabel}`;
 
-  // Linha do mês anterior
-  if (temDoisMeses && ant) {
-    document.getElementById('cAdqAnt').textContent   = ant.adq;
-    document.getElementById('cPerAnt').textContent   = ant.per;
-    document.getElementById('cTracAnt').textContent  = (ant.trac >= 0 ? '+' : '') + ant.trac;
-    document.getElementById('cTracAnt').style.color  = ant.trac >= 0 ? '#3B6D11' : '#A32D2D';
-    document.getElementById('cChurnAnt').textContent = ant.churnPct;
-    const mesAntLabel = rows[rows.length-2]['Mês'] || 'Mês anterior';
-    document.getElementById('carteiraAntLabel').textContent = mesAntLabel;
-    document.getElementById('carteiraAntRow').style.display = 'block';
+  // ── Tabela comparativa (2 ou 3 meses) ──
+  if (extracted.length >= 2) {
+    const tbody = document.getElementById('carteiraTabelaBody');
+    tbody.innerHTML = extracted.map((m, i) => {
+      const isAtual  = i === extracted.length - 1;
+      const prevM    = i > 0 ? extracted[i - 1] : null;
+      const tendHtml = prevM ? tracaoSeta(m.trac - prevM.trac) : '—';
+      const rowStyle = isAtual ? 'background:#f4fdf9;font-weight:600' : '';
+      const badge    = isAtual ? ' <span style="background:#E0F7F0;color:#00B37A;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:4px">atual</span>' : '';
+      const tracColor = m.trac >= 0 ? '#3B6D11' : '#A32D2D';
+      return `<tr style="border-top:0.5px solid rgba(0,0,0,0.07);${rowStyle}">
+        <td style="padding:10px 16px;font-size:12px">${m.mesLabel}${badge}</td>
+        <td style="padding:10px 16px;text-align:right;font-variant-numeric:tabular-nums;color:#3B6D11">${m.adq}</td>
+        <td style="padding:10px 16px;text-align:right;font-variant-numeric:tabular-nums;color:#A32D2D">${m.per}</td>
+        <td style="padding:10px 16px;text-align:right;font-variant-numeric:tabular-nums;color:${tracColor}">${m.trac >= 0 ? '+' : ''}${m.trac}</td>
+        <td style="padding:10px 16px;text-align:right;font-variant-numeric:tabular-nums;color:#854F0B">${m.churnPct}</td>
+        <td style="padding:10px 16px;text-align:center">${tendHtml}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('carteiraTabelaRow').style.display = 'block';
   } else {
-    document.getElementById('carteiraAntRow').style.display = 'none';
+    document.getElementById('carteiraTabelaRow').style.display = 'none';
+  }
+
+  // ── Análise trimestral (apenas 3 meses) ──
+  if (extracted.length === 3) {
+    const triAdq  = extracted.reduce((s, m) => s + m.adq, 0);
+    const triPer  = extracted.reduce((s, m) => s + m.per, 0);
+    const triTrac = extracted.reduce((s, m) => s + m.trac, 0);
+    const triChurnMed = (extracted.reduce((s, m) => s + m.churnRaw, 0) / 3 * 100).toFixed(1) + '%';
+
+    document.getElementById('triAdquiridas').textContent = triAdq;
+    document.getElementById('triPerdidas').textContent   = triPer;
+    document.getElementById('triTracao').textContent     = (triTrac >= 0 ? '+' : '') + triTrac;
+    document.getElementById('triTracao').style.color     = triTrac >= 0 ? '#3B6D11' : '#A32D2D';
+    document.getElementById('triChurn').textContent      = triChurnMed;
+
+    // Gráfico trimestral
+    destroyChart('trimestral');
+    charts.trimestral = new Chart(document.getElementById('cTrimestral'), {
+      type: 'bar',
+      data: {
+        labels: extracted.map(m => m.mesLabel),
+        datasets: [
+          {
+            label: 'Adquiridas',
+            data: extracted.map(m => m.adq),
+            backgroundColor: '#00C853',
+            borderRadius: 5,
+            order: 1
+          },
+          {
+            label: 'Perdidas',
+            data: extracted.map(m => m.per),
+            backgroundColor: '#FCEBEB',
+            borderColor: '#E24B4A',
+            borderWidth: 1.5,
+            borderRadius: 5,
+            order: 2
+          },
+          {
+            label: 'Tração',
+            data: extracted.map(m => m.trac),
+            type: 'line',
+            borderColor: '#185FA5',
+            backgroundColor: 'transparent',
+            pointBackgroundColor: '#185FA5',
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            borderWidth: 2,
+            tension: 0.3,
+            order: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { font: { size: 10 }, boxWidth: 10, padding: 14 }
+          },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+          y: { ticks: { font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' } }
+        }
+      }
+    });
+
+    document.getElementById('carteiraTriRow').style.display = 'block';
+  } else {
+    destroyChart('trimestral');
+    document.getElementById('carteiraTriRow').style.display = 'none';
   }
 
   document.getElementById('carteiraSection').style.display = 'block';
@@ -934,6 +1081,9 @@ let allRows = [];
 let currentPage = 1;
 const PAGE_SIZE = 20;
 let filteredRows = [];
+let quickFilterMode = 'todos';
+let excelFileData = null;   // guarda ArrayBuffer do excel para download
+let excelFileName = 'relatorio.xlsx';
 
 function renderPage() {
   const start = (currentPage-1)*PAGE_SIZE;
@@ -974,20 +1124,71 @@ function changePage(dir) {
   renderPage();
 }
 
+function setQuickFilter(mode, btn) {
+  quickFilterMode = mode;
+  document.querySelectorAll('.qf-btn').forEach(b => b.classList.remove('qf-active'));
+  btn.classList.add('qf-active');
+  filterTable();
+}
+
 function filterTable() {
-  const busca = document.getElementById('filterBusca').value.toLowerCase();
-  const saude = document.getElementById('filterSaude').value.toUpperCase();
+  const busca    = document.getElementById('filterBusca').value.toLowerCase();
+  const saude    = document.getElementById('filterSaude').value.toUpperCase();
   const situacao = document.getElementById('filterSituacao').value.toUpperCase();
 
   filteredRows = allRows.filter(r => {
     const matchBusca = !busca || r.empresa.toLowerCase().includes(busca);
-    const matchSaude = !saude || r.saude.includes(saude);
-    const matchSit = !situacao || (r.situacao||'').toUpperCase().includes(situacao);
-    return matchBusca && matchSaude && matchSit;
+    const matchSaude = !saude || normSaude(r.saude).includes(saude);
+    const matchSit   = !situacao || (r.situacao||'').toUpperCase().includes(situacao);
+    let matchPeriodo = true;
+    if (quickFilterMode === 'semana')  matchPeriodo = r.recSemana > 0 || r.ateSemana > 0;
+    if (quickFilterMode === 'mes')     matchPeriodo = r.recMes > 0;
+    if (quickFilterMode === 'sem')     matchPeriodo = r.recSemana === 0 && r.ateSemana === 0 && r.recMes === 0;
+    return matchBusca && matchSaude && matchSit && matchPeriodo;
   });
 
   currentPage = 1;
   renderPage();
+}
+
+// ── Exportar CSV da tabela filtrada ──
+function exportCSV() {
+  if (!filteredRows.length) { alert('Nenhum dado para exportar.'); return; }
+  const headers = ['Empresa','Situação','Faturamento','Rec. Semana','Ate. Semana','Taxa Semana (%)','Rec. Mês Ant.','Saúde'];
+  const rows = filteredRows.map(d => {
+    const taxa = d.recSemana > 0 ? Math.round((d.ateSemana/d.recSemana)*100) : '';
+    return [
+      `"${d.empresa.replace(/"/g,'""')}"`,
+      `"${d.situacao}"`,
+      `"${d.faturamento}"`,
+      d.recSemana,
+      d.ateSemana,
+      taxa,
+      d.recMes,
+      `"${d.saude}"`
+    ].join(',');
+  });
+  const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const parceiro = document.getElementById('headerParceiro').textContent || 'relatorio';
+  a.href = url;
+  a.download = `${parceiro.replace(/\s+/g,'-')}-empresas-filtradas.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Baixar Excel original ──
+function downloadExcel() {
+  if (!excelFileData) { alert('Excel não disponível.'); return; }
+  const blob = new Blob([excelFileData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = excelFileName;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 let logoDataUrl = null;
@@ -1053,8 +1254,6 @@ async function generatePDF() {
     const dateStr    = document.getElementById('footerDate').textContent;
     const GREEN      = [0,179,122];
 
-    // Helena logo embarcada via HELENA_LOGO_B64
-
     const addFooter = () => {
       pdf.setFillColor(255,255,255); pdf.rect(0,H-FOOTER_H,W,FOOTER_H,'F');
       pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); pdf.setTextColor(180,178,175);
@@ -1119,35 +1318,25 @@ async function generatePDF() {
       return y + 11;
     };
 
-    // ════════════════════════════════════════
-    // ── CAPA — design profissional ──
-    // ════════════════════════════════════════
-    const NAVY   = [13,  27,  51 ];   // azul escuro principal
-    const NAVY2  = [19,  40,  75 ];   // azul médio para gradiente/painel
-    const GGREEN = [0,   179, 122];   // verde Helena
+    const NAVY   = [13,  27,  51 ];
+    const NAVY2  = [19,  40,  75 ];
+    const GGREEN = [0,   179, 122];
     const WHITE  = [255, 255, 255];
 
-    // Fundo azul escuro full-page
     pdf.setFillColor(...NAVY);
     pdf.rect(0, 0, W, H, 'F');
 
-    // Painel lateral esquerdo — faixa vertical mais clara
     pdf.setFillColor(...NAVY2);
     pdf.rect(0, 0, 52, H, 'F');
 
-    // Linha de acento verde vertical na borda do painel
     pdf.setFillColor(...GGREEN);
     pdf.rect(52, 0, 1.5, H, 'F');
 
-    // Círculos decorativos no canto inferior direito (sutis)
     pdf.setDrawColor(255,255,255); pdf.setLineWidth(0.3); pdf.setGState(pdf.GState({opacity:0.06}));
     pdf.circle(W+10, H+10, 80, 'S');
     pdf.circle(W+10, H+10, 55, 'S');
     pdf.setGState(pdf.GState({opacity:1}));
 
-    // (decoração de números removida)
-
-    // ── Remove fundo preto da logo Helena ──
     async function logoSemFundo(dataUrl) {
       const img = new Image();
       await new Promise(r => { img.onload = r; img.src = dataUrl; });
@@ -1164,7 +1353,6 @@ async function generatePDF() {
       return cv.toDataURL('image/png');
     }
 
-    // Helena logo — painel lateral, centralizada verticalmente (parte superior)
     try {
       const helTransparent = await logoSemFundo(HELENA_LOGO_B64);
       const helImg = new Image();
@@ -1174,11 +1362,9 @@ async function generatePDF() {
       pdf.addImage(helTransparent, 'PNG', (52 - hlW)/2, 28, hlW, hlH, 'helside', 'FAST');
     } catch(e) {}
 
-    // ── Bloco principal de conteúdo (área direita) ──
-    const CX = 66; // x de início do conteúdo (após painel lateral)
-    const CW = W - CX - 16; // largura disponível
+    const CX = 66;
+    const CW = W - CX - 16;
 
-    // Tag "RELATÓRIO" pequena no topo
     pdf.setFillColor(...GGREEN);
     pdf.setGState(pdf.GState({opacity:0.15}));
     pdf.roundedRect(CX, 32, 56, 7, 2, 2, 'F');
@@ -1186,29 +1372,23 @@ async function generatePDF() {
     pdf.setFont('helvetica','bold'); pdf.setFontSize(6.5); pdf.setTextColor(...GGREEN);
     pdf.text('RELATÓRIO DE ATENDIMENTO', CX + 4, 37.5);
 
-    // Título principal — grande e bold
     pdf.setTextColor(...WHITE);
     pdf.setFont('helvetica','bold'); pdf.setFontSize(28);
     pdf.text('Evolução do', CX, 58);
     pdf.text('Atendimento', CX, 72);
 
-    // Linha de acento verde sob o título
     pdf.setFillColor(...GGREEN);
     pdf.rect(CX, 76, 28, 1.2, 'F');
 
-    // Nome do parceiro / cliente
     pdf.setFont('helvetica','normal'); pdf.setFontSize(11);
     pdf.setTextColor(180, 210, 255);
     pdf.text(clientName, CX, 90);
 
-    // Data
     pdf.setFontSize(9); pdf.setTextColor(120, 155, 200);
     pdf.text(dateStr, CX, 99);
 
-    // ── Logo do cliente (se fornecida) — bloco central com moldura ──
     let clientLogoY = 118;
     if (logoDataUrl) {
-      // Moldura/card semitransparente
       const cardH = 58;
       pdf.setFillColor(255,255,255);
       pdf.setGState(pdf.GState({opacity:0.08}));
@@ -1219,7 +1399,6 @@ async function generatePDF() {
         const tmpImg = new Image();
         await new Promise(r => { tmpImg.onload = r; tmpImg.src = logoDataUrl; });
         const ratio = tmpImg.width / tmpImg.height;
-        // Limita altura em 36mm e largura em 80% da área disponível
         const maxH = 36, maxW = CW * 0.75;
         let lh = maxH, lw = maxH * ratio;
         if (lw > maxW) { lw = maxW; lh = maxW / ratio; }
@@ -1232,13 +1411,11 @@ async function generatePDF() {
       clientLogoY = 130;
     }
 
-    // ── Divisória tracejada ──
     pdf.setDrawColor(...GGREEN); pdf.setLineWidth(0.4);
     pdf.setGState(pdf.GState({opacity:0.4}));
     pdf.line(CX, clientLogoY + 4, W - 16, clientLogoY + 4);
     pdf.setGState(pdf.GState({opacity:1}));
 
-    // ── Metadados em grid (3 colunas) ──
     const metaY = clientLogoY + 16;
     const metaCols = [
       { label: 'PARCEIRO',    value: clientName },
@@ -1255,14 +1432,12 @@ async function generatePDF() {
       pdf.text(val, mx, metaY + 6);
     });
 
-    // ── Linha de rodapé da capa ──
     pdf.setFillColor(...NAVY2);
     pdf.rect(0, H - 22, W, 22, 'F');
     pdf.setFillColor(...GGREEN); pdf.rect(52, H - 22, 1.5, 22, 'F');
     pdf.setFont('helvetica','normal'); pdf.setFontSize(7.5); pdf.setTextColor(120,155,200);
     pdf.text('Gerado por Helena CRM  ·  Uso interno e confidencial', CX, H - 9);
 
-    // ── PÁG 2+: MÉTRICAS + GRÁFICOS ──
     newPage();
     let curY = PAD;
 
@@ -1273,7 +1448,19 @@ async function generatePDF() {
     const carteiraEl = document.getElementById('carteiraSection');
     if (carteiraEl && carteiraEl.style.display !== 'none') {
       curY = addLabel('Gestão de Carteira', curY);
-      curY = await addEl(carteiraEl.querySelector('.metrics-row'), curY);
+      // 1. Cards do mês atual
+      const carteiraAtualRow = carteiraEl.querySelector('.metrics-row');
+      curY = await addEl(carteiraAtualRow, curY);
+      // 2. Tabela comparativa mensal
+      const carteiraTabelaRow = document.getElementById('carteiraTabelaRow');
+      if (carteiraTabelaRow && carteiraTabelaRow.style.display !== 'none') {
+        curY = await addEl(carteiraTabelaRow, curY);
+      }
+      // 3. Análise trimestral (totais + gráfico)
+      const carteiraTriRow = document.getElementById('carteiraTriRow');
+      if (carteiraTriRow && carteiraTriRow.style.display !== 'none') {
+        curY = await addEl(carteiraTriRow, curY);
+      }
     }
 
     curY = addLabel('Análise por Saúde', curY);
@@ -1286,7 +1473,6 @@ async function generatePDF() {
     }
     addFooter();
 
-    // ── TABELA ──
     if (pagination) pagination.style.display='none';
     if (filterRow)  filterRow.style.display='none';
 
@@ -1334,7 +1520,6 @@ async function generatePDF() {
     if (filterRow)  filterRow.style.display='';
     addFooter();
 
-    // ── ANOTAÇÕES ──
     const anotacoes = document.getElementById('anotacoes').value.trim();
     if (anotacoes) {
       newPage();
