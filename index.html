@@ -1269,14 +1269,18 @@ async function generatePDF() {
     };
 
     const capture = async (el) => {
+      if (!el || el.offsetWidth === 0 || el.offsetHeight === 0) return null;
       const canvas = await html2canvas(el, {scale:1.3, useCORS:true, backgroundColor:'#ffffff', logging:false});
-      const imgH   = (canvas.height * IMG_W) / canvas.width;
+      if (!canvas || canvas.width === 0 || canvas.height === 0) return null;
+      const imgH = (canvas.height * IMG_W) / canvas.width;
       return {canvas, imgH};
     };
 
     const addEl = async (el, curY) => {
       if (!el) return curY;
-      const {canvas, imgH} = await capture(el);
+      const result = await capture(el);
+      if (!result) return curY;
+      const {canvas, imgH} = result;
 
       if (curY + imgH <= USABLE_H) {
         pdf.addImage(canvas.toDataURL('image/jpeg', 0.82), 'JPEG', PAD, curY, IMG_W, imgH);
@@ -1465,7 +1469,9 @@ async function generatePDF() {
 
     curY = addLabel('Análise por Saúde', curY);
     for (const card of document.querySelectorAll('.chart-card')) {
-      const {imgH} = await capture(card);
+      const captureCard = await capture(card);
+      if (!captureCard) continue;
+      const {imgH} = captureCard;
       if (curY + imgH > USABLE_H || (USABLE_H - curY < 60 && imgH > 60)) {
         addFooter(); newPage(); curY = PAD;
       }
@@ -1484,11 +1490,22 @@ async function generatePDF() {
     if (USABLE_H - curY < 80) { addFooter(); newPage(); curY = PAD; }
     curY = addLabel('Detalhe por Empresa', curY);
 
-    const {canvas:hCanvas, imgH:hImgH} = await capture(tableHeader);
+    const captureHeader = await capture(tableHeader);
+    if (!captureHeader) { addFooter(); pdf.save(`relatorio-${clientName.replace(/\s+/g,'-')}.pdf`); closePdfModal(); return; }
+    const {canvas:hCanvas, imgH:hImgH} = captureHeader;
     pdf.addImage(hCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,hImgH);
     curY += hImgH + 1;
 
-    const {canvas:thCanvas, imgH:thImgH} = await capture(tableHeadEl);
+    const captureThead = await capture(tableHeadEl);
+    const thCanvas = captureThead ? captureThead.canvas : null;
+    const thImgH   = captureThead ? captureThead.imgH   : 0;
+
+    const addTheadToPdf = () => {
+      if (thCanvas) {
+        pdf.addImage(thCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,thImgH);
+        curY += thImgH + 1;
+      }
+    };
 
     const CHUNK = 25;
     for (let i=0; i<allRows.length; i+=CHUNK) {
@@ -1504,12 +1521,13 @@ async function generatePDF() {
           <td>${saudeBadge(d.saude)}</td>
         </tr>`).join('');
 
-      const {canvas:cCanvas, imgH:cImgH} = await capture(tbody);
+      const captureBody = await capture(tbody);
+      if (!captureBody) continue;
+      const {canvas:cCanvas, imgH:cImgH} = captureBody;
 
       if (curY + cImgH > USABLE_H) {
         addFooter(); newPage(); curY = PAD;
-        pdf.addImage(thCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,thImgH);
-        curY += thImgH + 1;
+        addTheadToPdf();
       }
       pdf.addImage(cCanvas.toDataURL('image/jpeg', 0.82),'JPEG',PAD,curY,IMG_W,cImgH);
       curY += cImgH;
