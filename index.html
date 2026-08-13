@@ -205,6 +205,14 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 
 <div id="errorMsg" style="display:none;background:#FCEBEB;border:0.5px solid #F09595;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#A32D2D"></div>
 
+<div id="restoreBanner" style="display:none;background:#E6F1FB;border:0.5px solid #A8CFF0;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12.5px;color:#185FA5;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <span id="restoreBannerText">Dados restaurados automaticamente do seu último acesso.</span>
+  <div style="display:flex;gap:8px">
+    <button onclick="document.getElementById('restoreBanner').style.display='none'" style="background:none;border:0.5px solid #A8CFF0;color:#185FA5;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer">Ok, entendi</button>
+    <button onclick="startFresh()" style="background:#185FA5;border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600">Começar do zero</button>
+  </div>
+</div>
+
 <div id="dashboard">
   <header>
     <div class="header-left">
@@ -515,7 +523,7 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
         <div class="ins-sub">Escreva aqui observações, comentários ou pontos de atenção para o relatório</div>
       </div>
     </div>
-    <textarea id="anotacoes" placeholder="Digite suas observações aqui..." style="width:100%;min-height:120px;border:0.5px solid rgba(0,0,0,0.1);border-radius:10px;padding:14px;font-family:inherit;font-size:13.5px;line-height:1.7;color:#1a1916;resize:vertical;outline:none;background:#fafaf8"></textarea>
+    <textarea id="anotacoes" oninput="scheduleSaveState()" placeholder="Digite suas observações aqui..." style="width:100%;min-height:120px;border:0.5px solid rgba(0,0,0,0.1);border-radius:10px;padding:14px;font-family:inherit;font-size:13.5px;line-height:1.7;color:#1a1916;resize:vertical;outline:none;background:#fafaf8"></textarea>
   </div>
 
   <footer>
@@ -703,6 +711,111 @@ function destroyChart(id) {
   if (charts[id]) { charts[id].destroy(); delete charts[id]; }
 }
 
+// ── Persistência automática (localStorage) ──
+const STORAGE_KEY = 'relatorioAtendimento_state_v1';
+let _saveStateTimer = null;
+
+function scheduleSaveState() {
+  clearTimeout(_saveStateTimer);
+  _saveStateTimer = setTimeout(saveState, 500);
+}
+
+function saveState() {
+  try {
+    if (!allRows || !allRows.length) return;
+    const state = {
+      v: 1,
+      savedAt: new Date().toISOString(),
+      fileName: excelFileName,
+      mainData: allRows,
+      csvData: csvData,
+      csvStatusText: document.getElementById('csvStatus').textContent,
+      motivosData: motivosData ? motivosData.map(r => ({
+        ...r,
+        dataCancelamento: (r.dataCancelamento instanceof Date && !isNaN(r.dataCancelamento)) ? r.dataCancelamento.toISOString() : null
+      })) : null,
+      motivosStatusText: document.getElementById('motivosStatus').textContent,
+      canaisData: canaisData,
+      canaisStatusText: document.getElementById('canaisStatus').textContent,
+      anotacoes: document.getElementById('anotacoes') ? document.getElementById('anotacoes').value : ''
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) {
+    // localStorage indisponível ou cheio — ignora silenciosamente, não é crítico
+  }
+}
+
+function clearSavedState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+}
+
+function loadSavedState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function startFresh() {
+  clearSavedState();
+  location.reload();
+}
+
+function tryRestoreState() {
+  const state = loadSavedState();
+  if (!state || !state.mainData || !state.mainData.length) return;
+
+  excelFileName = state.fileName || 'relatorio.xlsx';
+
+  if (state.csvData && state.csvData.length) {
+    csvData = state.csvData;
+    document.getElementById('csvStatus').textContent = state.csvStatusText || `✓ restaurado — ${csvData.length} linhas`;
+    document.getElementById('dropZoneCSV').style.borderColor = '#3B6D11';
+    document.getElementById('btnCSVLabel').textContent = 'Trocar CSV';
+    document.getElementById('btnRemoveCSV').style.display = '';
+  }
+
+  if (state.motivosData && state.motivosData.length) {
+    motivosData = state.motivosData.map(r => ({
+      ...r,
+      dataCancelamento: r.dataCancelamento ? new Date(r.dataCancelamento) : null
+    }));
+    document.getElementById('motivosStatus').textContent = state.motivosStatusText || `✓ restaurado — ${motivosData.length} linhas`;
+    document.getElementById('dropZoneMotivos').style.borderColor = '#A32D2D';
+    document.getElementById('btnMotivosLabel').textContent = 'Trocar Motivos';
+    document.getElementById('btnRemoveMotivos').style.display = '';
+  }
+
+  if (state.canaisData && state.canaisData.length) {
+    canaisData = state.canaisData;
+    document.getElementById('canaisStatus').textContent = state.canaisStatusText || `✓ restaurado — ${canaisData.length} linhas`;
+    document.getElementById('dropZoneCanais').style.borderColor = '#378ADD';
+    document.getElementById('btnCanaisLabel').textContent = 'Trocar Canais';
+    document.getElementById('btnRemoveCanais').style.display = '';
+  }
+
+  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('dropZoneCSV').style.display = 'none';
+  document.getElementById('dropZoneMotivos').style.display = 'none';
+  document.getElementById('dropZoneCanais').style.display = 'none';
+
+  renderDashboard(state.mainData, excelFileName);
+
+  if (state.anotacoes && document.getElementById('anotacoes')) {
+    document.getElementById('anotacoes').value = state.anotacoes;
+  }
+
+  const when = state.savedAt ? new Date(state.savedAt) : null;
+  const whenStr = when && !isNaN(when) ? when.toLocaleString('pt-BR') : '';
+  document.getElementById('restoreBannerText').textContent = whenStr
+    ? `Dados restaurados automaticamente (salvos em ${whenStr}).`
+    : 'Dados restaurados automaticamente do seu último acesso.';
+  document.getElementById('restoreBanner').style.display = 'flex';
+}
+
+
 function renderDashboard(data, fileName) {
   const parceiro = data[0]?.parceiro || 'Parceiro';
   const today = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'});
@@ -882,6 +995,7 @@ function processFile(file) {
       document.getElementById('pdfClientName') && (document.getElementById('pdfClientName').value = '');
       clearLogo();
       renderDashboard(data, file.name);
+      saveState();
     } catch(err) {
       showError('Erro ao processar o arquivo: ' + err.message);
     }
@@ -900,6 +1014,7 @@ function removeCSV() {
   document.getElementById('csvStatus').textContent = 'Arraste ou clique para selecionar';
   document.getElementById('dropZoneCSV').style.borderColor = '#ccc';
   document.getElementById('carteiraSection').style.display = 'none';
+  saveState();
 }
 
 function parseCSVLine(line) {
@@ -945,6 +1060,7 @@ function handleCSV(event) {
         const parceiro = document.getElementById('headerParceiro').textContent;
         renderCarteira(parceiro);
       }
+      saveState();
     } catch(err) {
       document.getElementById('csvStatus').textContent = 'Erro ao ler CSV: ' + err.message;
     }
@@ -1027,6 +1143,7 @@ function removeMotivos() {
   document.getElementById('motivosStatus').textContent = 'Arraste ou clique para selecionar';
   document.getElementById('dropZoneMotivos').style.borderColor = '#ccc';
   document.getElementById('motivosSection').style.display = 'none';
+  saveState();
 }
 
 function handleMotivos(event) {
@@ -1073,6 +1190,7 @@ function handleMotivos(event) {
         const parceiro = document.getElementById('headerParceiro').textContent;
         renderMotivos(parceiro);
       }
+      saveState();
     } catch(err) {
       document.getElementById('motivosStatus').textContent = 'Erro ao ler Excel: ' + err.message;
     }
@@ -1302,6 +1420,7 @@ function removeCanais() {
   document.getElementById('dropZoneCanais').style.borderColor = '#ccc';
   document.getElementById('canaisSection').style.display = 'none';
   destroyChart('canais');
+  saveState();
 }
 
 function handleCanais(event) {
@@ -1347,6 +1466,7 @@ function handleCanais(event) {
         const parceiro = document.getElementById('headerParceiro').textContent;
         renderCanais(parceiro);
       }
+      saveState();
     } catch(err) {
       document.getElementById('canaisStatus').textContent = 'Erro ao ler Excel: ' + err.message;
     }
@@ -2228,6 +2348,8 @@ dzCSV.addEventListener('drop', e=>{
   const f = e.dataTransfer.files[0];
   if(f){ handleCSV({target:{files:[f]}}); }
 });
+
+try { tryRestoreState(); } catch(e) { console.warn('Falha ao restaurar dados salvos:', e); }
 </script>
 </body>
 </html>
