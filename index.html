@@ -14,7 +14,10 @@
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#ffffff;color:#1a1916;font-size:14px;line-height:1.6}
 .page{max-width:1100px;margin:0 auto;padding:32px}
 
-.upload-zone{background:#fff;border:2px dashed #ccc;border-radius:16px;padding:48px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:32px}
+.upload-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.upload-zone{background:#fff;border:2px dashed #ccc;border-radius:16px;padding:32px 24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:32px;position:relative}
+.info-btn{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,0.15);background:#fff;color:#888780;font-size:12px;font-weight:700;font-style:italic;font-family:Georgia,'Times New Roman',serif;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;transition:background .15s,color .15s}
+.info-btn:hover{background:#f0ede6;color:#1a1916}
 .upload-zone:hover,.upload-zone.drag{border-color:#00B37A;background:#E0F7F0}
 .upload-zone input{display:none}
 .upload-icon{width:48px;height:48px;margin:0 auto 16px;background:#00B37A;border-radius:12px;display:flex;align-items:center;justify-content:center}
@@ -114,8 +117,8 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 .col-error p{color:#A32D2D}
 
 /* Modal drilldown saúde */
-#saudeModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
-#saudeModal.open{display:flex}
+#saudeModal,#mesesModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+#saudeModal.open,#mesesModal.open{display:flex}
 .saude-modal-box{background:#fff;border-radius:16px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden;margin:auto}
 .saude-modal-head{padding:20px 24px 16px;border-bottom:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between;gap:12px}
 .saude-modal-head h3{font-size:15px;font-weight:700;color:#1a1916}
@@ -136,7 +139,8 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 .saude-modal-empty{padding:32px 24px;text-align:center;color:#6b6860;font-size:13px}
 .saude-modal-foot{padding:12px 24px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:10px;color:#aaa;text-align:center}
 
-@media(max-width:768px){.metrics-row{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.chart-card.full{grid-column:1}}
+@media(max-width:900px){.upload-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.metrics-row{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}.chart-card.full{grid-column:1}.upload-grid{grid-template-columns:1fr}}
 @media print{
   body{background:#fff}
   .upload-zone{display:none!important}
@@ -152,9 +156,12 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 
 <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)" style="display:none">
 <input type="file" id="csvInput" accept=".csv" onchange="handleCSV(event)" style="display:none">
+<input type="file" id="motivosInput" accept=".xlsx,.xls" onchange="handleMotivos(event)" style="display:none">
+<input type="file" id="canaisInput" accept=".xlsx,.xls" onchange="handleCanais(event)" style="display:none">
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:32px">
+<div class="upload-grid" style="margin-bottom:32px">
   <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" style="margin-bottom:0">
+    <button type="button" class="info-btn" onclick="showUploadInfo(event,'excel')" title="Onde baixar este arquivo">i</button>
     <div class="upload-icon" style="margin:0 auto 16px">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     </div>
@@ -163,6 +170,7 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     <div class="hint">Aceita .xlsx e .xls</div>
   </div>
   <div class="upload-zone" id="dropZoneCSV" onclick="document.getElementById('csvInput').click()" style="margin-bottom:0;border-color:#ccc">
+    <button type="button" class="info-btn" onclick="showUploadInfo(event,'csv')" title="Onde baixar este arquivo">i</button>
     <div class="upload-icon" style="background:#3B6D11;margin:0 auto 16px">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     </div>
@@ -170,6 +178,29 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     <p id="csvStatus">Arraste ou clique para selecionar</p>
     <div class="hint">Adquiridas, perdidas e churn por parceiro</div>
   </div>
+  <div class="upload-zone" id="dropZoneMotivos" onclick="document.getElementById('motivosInput').click()" style="margin-bottom:0;border-color:#ccc">
+    <button type="button" class="info-btn" onclick="showUploadInfo(event,'motivos')" title="Onde baixar este arquivo">i</button>
+    <div class="upload-icon" style="background:#A32D2D;margin:0 auto 16px">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <h2>Motivos de Cancelamento <span style="font-size:11px;font-weight:400;color:#aaa">(opcional)</span></h2>
+    <p id="motivosStatus">Arraste ou clique para selecionar</p>
+    <div class="hint">Excel com motivos e descrições de cancelamento</div>
+  </div>
+  <div class="upload-zone" id="dropZoneCanais" onclick="document.getElementById('canaisInput').click()" style="margin-bottom:0;border-color:#ccc">
+    <button type="button" class="info-btn" onclick="showUploadInfo(event,'canais')" title="Onde baixar este arquivo">i</button>
+    <div class="upload-icon" style="background:#378ADD;margin:0 auto 16px">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    </div>
+    <h2>Canais de WhatsApp <span style="font-size:11px;font-weight:400;color:#aaa">(opcional)</span></h2>
+    <p id="canaisStatus">Arraste ou clique para selecionar</p>
+    <div class="hint">% de canais API Oficial e Não Oficial</div>
+  </div>
+</div>
+
+<div id="uploadInfoPopover" style="display:none;position:fixed;z-index:3000;background:#1a1916;color:#fff;padding:14px 16px;border-radius:10px;font-size:12px;max-width:280px;box-shadow:0 10px 30px rgba(0,0,0,0.3)">
+  <div id="uploadInfoText" style="margin-bottom:10px;line-height:1.5"></div>
+  <a id="uploadInfoLink" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;color:#fff;background:#378ADD;text-decoration:none;font-weight:600;padding:6px 10px;border-radius:7px;font-size:11px">Abrir link ↗</a>
 </div>
 
 <div id="errorMsg" style="display:none;background:#FCEBEB;border:0.5px solid #F09595;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#A32D2D"></div>
@@ -192,6 +223,22 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
       <button id="btnRemoveCSV" class="btn-action btn-trocar" onclick="removeCSV()" style="display:none;background:#FCEBEB;color:#A32D2D">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
         Remover CSV
+      </button>
+      <button class="btn-action btn-trocar" onclick="document.getElementById('motivosInput').click()" style="background:#FCEBEB;color:#A32D2D">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        <span id="btnMotivosLabel">Carregar Motivos</span>
+      </button>
+      <button id="btnRemoveMotivos" class="btn-action btn-trocar" onclick="removeMotivos()" style="display:none;background:#FCEBEB;color:#A32D2D">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Remover Motivos
+      </button>
+      <button class="btn-action btn-trocar" onclick="document.getElementById('canaisInput').click()" style="background:#E6F1FB;color:#185FA5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        <span id="btnCanaisLabel">Carregar Canais</span>
+      </button>
+      <button id="btnRemoveCanais" class="btn-action btn-trocar" onclick="removeCanais()" style="display:none;background:#E6F1FB;color:#185FA5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Remover Canais
       </button>
       <button class="btn-action btn-pdf" onclick="openPdfModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -330,27 +377,60 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
   </div>
   <!-- ── FIM CARTEIRA ── -->
 
+  <!-- ── MOTIVOS DE CANCELAMENTO ── -->
+  <div id="motivosSection" style="display:none;margin-bottom:28px">
+    <p class="section-title">Motivos de Cancelamento</p>
+    <div class="charts-grid" style="margin-bottom:28px">
+      <div class="chart-card full">
+        <h3>Tempo até o cancelamento</h3>
+        <p>Quantos meses o cliente ficou na base antes de cancelar · clique numa barra para ver as contas</p>
+        <div id="mcTopBucketBadge" style="display:none;margin:-2px 0 14px;font-size:12px;color:#A32D2D;font-weight:600"></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="cMesesBase" role="img" aria-label="Meses na base ao cancelar">Distribuição de tempo na base.</canvas></div>
+      </div>
+    </div>
+    <div class="table-card" id="motivosTableCard">
+      <div class="table-header">
+        <h3>Cancelamentos — detalhe</h3>
+        <p style="margin-bottom:14px">Conta, data, tempo na base e motivo</p>
+        <div id="motivosFilterRow" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
+          <input type="text" id="mcFiltroBusca" placeholder="Buscar conta ou descrição..." oninput="filterMotivosTable()" style="flex:1;min-width:160px;padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none">
+          <select id="mcFiltroMotivo" onchange="filterMotivosTable()" style="padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;background:#fff;cursor:pointer">
+            <option value="">Todos os motivos</option>
+          </select>
+          <input type="date" id="mcFiltroDataDe" onchange="filterMotivosTable()" style="padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;color:#6b6860">
+          <span style="align-self:center;font-size:11px;color:#aaa">até</span>
+          <input type="date" id="mcFiltroDataAte" onchange="filterMotivosTable()" style="padding:7px 12px;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;font-size:12px;outline:none;color:#6b6860">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Conta</th><th>Data</th><th>Meses na base</th><th>Motivo</th><th>Descrição</th></tr></thead>
+          <tbody id="motivosTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- ── FIM MOTIVOS ── -->
+
+  <!-- ── CANAIS DE WHATSAPP ── -->
+  <div id="canaisSection" style="display:none;margin-bottom:28px">
+    <p class="section-title">Canais de WhatsApp</p>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <h3>API Oficial vs Não Oficial</h3>
+        <p>Distribuição dos canais de WhatsApp ativos por tipo de API</p>
+        <div class="chart-wrap" style="height:240px"><canvas id="cCanais" role="img" aria-label="API Oficial vs Não Oficial">Distribuição de canais por tipo de API.</canvas></div>
+      </div>
+    </div>
+  </div>
+  <!-- ── FIM CANAIS ── -->
+
   <p class="section-title">Análise por Saúde</p>
-  <div class="charts-grid">
+  <div class="charts-grid" id="saudeChartsGrid">
     <div class="chart-card full">
       <h3>Distribuição por saúde do cliente</h3>
       <p>Quantidade de empresas em cada status</p>
       <div class="chart-wrap" style="height:220px"><canvas id="cSaude" role="img" aria-label="Distribuição por saúde">Gráfico de saúde dos clientes.</canvas></div>
-    </div>
-    <div class="chart-card full">
-      <h3>Atendidas vs recebidas — semana atual</h3>
-      <p>10 empresas com menor volume de mensagens (excluindo sem atividade)</p>
-      <div class="chart-wrap" style="height:280px"><canvas id="cSemana" role="img" aria-label="Atendidas vs recebidas semana atual">Comparativo semanal.</canvas></div>
-    </div>
-    <div class="chart-card full">
-      <h3>Evolução semanal — semana atual vs semana passada</h3>
-      <p>10 empresas com menor volume de mensagens (excluindo sem atividade)</p>
-      <div class="legend-row">
-        <div class="legend-item"><div class="legend-dot" style="background:#00B37A"></div>Recebidas semana atual</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#99DFC9"></div>Recebidas semana passada</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#3B6D11"></div>Atendidas semana atual</div>
-      </div>
-      <div class="chart-wrap" style="height:300px"><canvas id="cEvolucao" role="img" aria-label="Evolução semanal">Evolução semanal por empresa.</canvas></div>
     </div>
     <div class="chart-card full">
       <h3>Pior desempenho mensal — mês passado</h3>
@@ -365,7 +445,7 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
 
   <p class="section-title">Detalhe por Empresa</p>
   <div class="table-card">
-    <div class="table-header">
+    <div class="table-header" id="detalheTableHeader">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
         <div>
           <h3>Empresas monitoradas</h3>
@@ -469,6 +549,32 @@ footer{border-top:1px solid rgba(0,0,0,0.08);padding-top:20px;display:flex;justi
     </div>
     <div class="saude-modal-list" id="saudeModalList"></div>
     <div class="saude-modal-foot">Clique fora para fechar · Ordenado por mensagens recebidas na semana</div>
+  </div>
+</div>
+
+<!-- Modal drilldown motivos de cancelamento -->
+<div id="mesesModal" onclick="closeMesesModal(event)">
+  <div class="saude-modal-box" onclick="event.stopPropagation()">
+    <div class="saude-modal-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="mesesModalIcon" style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#E24B4A">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <h3 id="mesesModalTitle">—</h3>
+          <div style="font-size:10px;color:#6b6860;margin-top:1px">Contas canceladas nesta faixa de tempo</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="mesesModalPill" class="count-pill" style="background:#FCEBEB;color:#A32D2D">—</span>
+        <button class="saude-modal-close" onclick="closeMesesModal()">✕</button>
+      </div>
+    </div>
+    <div class="saude-modal-search">
+      <input type="text" id="mesesModalSearch" placeholder="Filtrar contas..." oninput="filterMesesModal()" />
+    </div>
+    <div class="saude-modal-list" id="mesesModalList"></div>
+    <div class="saude-modal-foot">Clique fora para fechar · Ordenado por data de cancelamento</div>
   </div>
 </div>
 
@@ -699,29 +805,7 @@ function renderDashboard(data, fileName) {
     }
   });
 
-  const top10 = [...data].filter(d=>d.recSemana>0).sort((a,b)=>a.recSemana-b.recSemana).slice(0,10);
   const short = d => d.empresa.length>17 ? d.empresa.slice(0,17)+'…' : d.empresa;
-
-  destroyChart('semana');
-  charts.semana = new Chart(document.getElementById('cSemana'), {
-    type:'bar',
-    data:{labels:top10.map(short),datasets:[
-      {label:'Recebidas',data:top10.map(d=>d.recSemana),backgroundColor:'#99E8B8',borderRadius:4},
-      {label:'Atendidas',data:top10.map(d=>d.ateSemana),backgroundColor:'#00C853',borderRadius:4}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}
-  });
-
-  destroyChart('evolucao');
-  charts.evolucao = new Chart(document.getElementById('cEvolucao'), {
-    type:'bar',
-    data:{labels:top10.map(short),datasets:[
-      {label:'Rec. semana atual',data:top10.map(d=>d.recSemana),backgroundColor:'#00C853',borderRadius:3},
-      {label:'Rec. semana passada',data:top10.map(d=>d.recSemanaAnt),backgroundColor:'#99E8B8',borderRadius:3},
-      {label:'Ate. semana atual',data:top10.map(d=>d.ateSemana),backgroundColor:'#3B6D11',borderRadius:3}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9.5},maxRotation:38,autoSkip:false},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}}}}
-  });
 
   const top10Mensal = [...data]
     .filter(d=>d.recMes>=5)
@@ -763,6 +847,8 @@ function renderDashboard(data, fileName) {
 
   document.getElementById('dashboard').style.display = 'block';
   renderCarteira(parceiro);
+  renderMotivos(parceiro);
+  renderCanais(parceiro);
 }
 
 function showError(msg) {
@@ -790,6 +876,8 @@ function processFile(file) {
       document.getElementById('btnDownloadExcel').style.display = '';
       document.getElementById('dropZone').style.display = 'none';
       document.getElementById('dropZoneCSV').style.display = 'none';
+      document.getElementById('dropZoneMotivos').style.display = 'none';
+      document.getElementById('dropZoneCanais').style.display = 'none';
       document.getElementById('anotacoes').value = '';
       document.getElementById('pdfClientName') && (document.getElementById('pdfClientName').value = '');
       clearLogo();
@@ -868,6 +956,454 @@ function normalizeName(s) {
   return (s||'').toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
     .replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+// ── Popover "onde baixar" nas caixas de upload ──
+const uploadInfoData = {
+  excel: {
+    title: 'Excel de Atendimento',
+    desc: 'Baixe no Metabase, na consulta "Evolução do atendimento por empresa".',
+    url: 'https://metabase.helena.run/question/2049-evolucao-do-atendimento-por-empresa?situacaoempresa=COMPLETED&situacaoempresa=SUBSCRIPTION_ARREARS&situacaoempresa=SUBSCRIPTION_SUSPENDED'
+  },
+  csv: {
+    title: 'CSV de Carteira',
+    desc: 'Baixe no Looker Studio (Data Studio).',
+    url: 'https://datastudio.google.com/u/0/reporting/a41cb5b0-b3d1-4837-8fe4-b2bbf24079fe/page/p_jxzk95g9td'
+  },
+  motivos: {
+    title: 'Motivos de Cancelamento',
+    desc: 'Baixe no Metabase, na consulta "Motivos de cancelamento".',
+    url: 'https://metabase.helena.run/question/12499-motivos-de-cancelamento?parceiro=&motivo=&mes_cancelamento='
+  },
+  canais: {
+    title: 'Canais de WhatsApp',
+    desc: 'Baixe no Metabase, na consulta "Análise de canais de WhatsApp por tipo".',
+    url: 'https://metabase.helena.run/question/11694-analise-de-canais-de-whatsapp-por-tipo?parceiro='
+  }
+};
+
+function showUploadInfo(event, key) {
+  event.stopPropagation();
+  const popover = document.getElementById('uploadInfoPopover');
+  const data = uploadInfoData[key];
+  if (!popover || !data) return;
+
+  const alreadyOpenForThisKey = popover.style.display === 'block' && popover.dataset.key === key;
+  if (alreadyOpenForThisKey) {
+    popover.style.display = 'none';
+    return;
+  }
+
+  document.getElementById('uploadInfoText').innerHTML = `<strong>${data.title}</strong><br>${data.desc}`;
+  document.getElementById('uploadInfoLink').href = data.url;
+  popover.dataset.key = key;
+  popover.style.display = 'block';
+
+  const rect = event.currentTarget.getBoundingClientRect();
+  const popW = 280;
+  let left = rect.right - popW;
+  if (left < 8) left = 8;
+  if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+  popover.style.left = left + 'px';
+  popover.style.top = (rect.bottom + 8) + 'px';
+}
+
+document.addEventListener('click', e => {
+  const popover = document.getElementById('uploadInfoPopover');
+  if (popover && popover.style.display === 'block' && !popover.contains(e.target) && !e.target.classList.contains('info-btn')) {
+    popover.style.display = 'none';
+  }
+});
+
+// ── Motivos de Cancelamento ──
+let motivosData = null;
+
+function removeMotivos() {
+  motivosData = null;
+  motivosRows = [];
+  document.getElementById('motivosInput').value = '';
+  document.getElementById('btnMotivosLabel').textContent = 'Carregar Motivos';
+  document.getElementById('btnRemoveMotivos').style.display = 'none';
+  document.getElementById('motivosStatus').textContent = 'Arraste ou clique para selecionar';
+  document.getElementById('dropZoneMotivos').style.borderColor = '#ccc';
+  document.getElementById('motivosSection').style.display = 'none';
+}
+
+function handleMotivos(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      const headers = rows[0].map(String);
+      const findIdx = name => headers.findIndex(h => normalizeName(h) === normalizeName(name));
+
+      const iParceiro = findIdx('Parceiro');
+      const iConta     = findIdx('Conta');
+      const iDataCanc  = findIdx('Data cancelamento');
+      const iMeses     = findIdx('Meses na base');
+      const iMotivo    = findIdx('Motivo cancelamento');
+      const iDesc      = findIdx('Descrição do motivo');
+
+      if (iParceiro < 0 || iMotivo < 0) {
+        throw new Error('Colunas "Parceiro" e/ou "Motivo cancelamento" não encontradas na planilha.');
+      }
+
+      motivosData = rows.slice(1)
+        .filter(r => r[iParceiro])
+        .map(r => ({
+          parceiro:         String(r[iParceiro] || ''),
+          conta:             String(r[iConta] || ''),
+          dataCancelamento:  r[iDataCanc] instanceof Date ? r[iDataCanc] : null,
+          mesesNaBase:       parseFloat(r[iMeses]) || 0,
+          motivo:            (String(r[iMotivo] || '').trim()) || 'Não informado',
+          descricao:         String(r[iDesc] || '').trim(),
+        }));
+
+      document.getElementById('motivosStatus').textContent = `✓ ${file.name} — ${motivosData.length} linha${motivosData.length !== 1 ? 's' : ''}`;
+      document.getElementById('dropZoneMotivos').style.borderColor = '#A32D2D';
+      document.getElementById('btnMotivosLabel').textContent = 'Trocar Motivos';
+      document.getElementById('btnRemoveMotivos').style.display = '';
+
+      if (document.getElementById('dashboard').style.display !== 'none') {
+        const parceiro = document.getElementById('headerParceiro').textContent;
+        renderMotivos(parceiro);
+      }
+    } catch(err) {
+      document.getElementById('motivosStatus').textContent = 'Erro ao ler Excel: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// Mesmo algoritmo de score usado no match do CSV de Carteira, reaproveitado
+// aqui para casar o "Parceiro" da planilha de motivos com o parceiro do relatório.
+function matchScoreGeneric(candidate, normExcel, wordsExcel) {
+  const normFull     = normalizeName(candidate);
+  const normStripped = normalizeName((candidate || '').replace(/^\[.*?\]\s*/, ''));
+  if (normFull === normExcel || normStripped === normExcel) return 100;
+  if (Math.min(normFull.length, normExcel.length) <= 20) {
+    if (normFull.includes(normExcel) || normExcel.includes(normFull)) return 70;
+    if (normStripped && (normStripped.includes(normExcel) || normExcel.includes(normStripped))) return 60;
+  }
+  const wordsCandidate = normFull.split(' ').filter(w => w.length > 3);
+  if (!wordsExcel.length || !wordsCandidate.length) return 0;
+  const setCandidate = new Set(wordsCandidate);
+  const intersection = wordsExcel.filter(w => setCandidate.has(w)).length;
+  const union = new Set([...wordsExcel, ...wordsCandidate]).size;
+  const jaccard = intersection / union;
+  return jaccard >= 0.5 ? Math.round(jaccard * 50) : 0;
+}
+
+let motivosRows = [];
+const MESES_BUCKETS = [
+  { label: '0–3 meses',   min: 0,  max: 3 },
+  { label: '4–6 meses',   min: 4,  max: 6 },
+  { label: '7–12 meses',  min: 7,  max: 12 },
+  { label: '13–24 meses', min: 13, max: 24 },
+  { label: '25+ meses',   min: 25, max: Infinity },
+];
+
+function renderMotivos(parceiroExcel) {
+  const section = document.getElementById('motivosSection');
+  if (!motivosData || !parceiroExcel) { section.style.display = 'none'; return; }
+
+  const normExcel  = normalizeName(parceiroExcel);
+  const wordsExcel = normExcel.split(' ').filter(w => w.length > 3);
+
+  const scored = motivosData.map(r => ({ r, s: matchScoreGeneric(r.parceiro, normExcel, wordsExcel) })).filter(x => x.s > 0);
+  if (!scored.length) { section.style.display = 'none'; return; }
+  const bestScore = Math.max(...scored.map(x => x.s));
+  motivosRows = scored.filter(x => x.s === bestScore).map(x => x.r)
+    .sort((a,b) => {
+      const da = a.dataCancelamento instanceof Date ? a.dataCancelamento : new Date(0);
+      const db = b.dataCancelamento instanceof Date ? b.dataCancelamento : new Date(0);
+      return db - da;
+    });
+
+  const bucketCounts = MESES_BUCKETS.map(b => motivosRows.filter(r => r.mesesNaBase >= b.min && r.mesesNaBase <= b.max).length);
+
+  const topBadge = document.getElementById('mcTopBucketBadge');
+  const maxCount = Math.max(...bucketCounts);
+  if (maxCount > 0) {
+    const maxIdx = bucketCounts.indexOf(maxCount);
+    const pct = motivosRows.length ? Math.round((maxCount / motivosRows.length) * 100) : 0;
+    topBadge.textContent = `Maior concentração de cancelamentos: ${MESES_BUCKETS[maxIdx].label} (${maxCount} de ${motivosRows.length} · ${pct}%)`;
+    topBadge.style.display = 'block';
+  } else {
+    topBadge.style.display = 'none';
+  }
+
+  const bucketColors = ['#E24B4A','#EF9F27','#378ADD','#185FA5','#639922'];
+
+  destroyChart('mesesBase');
+  const cMesesEl = document.getElementById('cMesesBase');
+  cMesesEl.style.cursor = 'pointer';
+  charts.mesesBase = new Chart(cMesesEl, {
+    type: 'bar',
+    data: {
+      labels: MESES_BUCKETS.map(b => b.label),
+      datasets: [{
+        data: bucketCounts,
+        backgroundColor: bucketColors,
+        hoverBackgroundColor: bucketColors.map(c => c + 'cc'),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display:false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} conta${ctx.parsed.y !== 1 ? 's' : ''} · clique para ver` } }
+      },
+      scales: {
+        x: { ticks:{ font:{ size:11 } }, grid:{ display:false } },
+        y: { ticks:{ font:{ size:10 }, stepSize:1 }, grid:{ color:'rgba(0,0,0,0.05)' } }
+      },
+      onClick(evt, elements) {
+        if (!elements.length) return;
+        openMesesModal(elements[0].index);
+      }
+    }
+  });
+
+  // Popula filtro de motivo com os valores presentes
+  const motivoSelect = document.getElementById('mcFiltroMotivo');
+  const motivosUnicos = [...new Set(motivosRows.map(r => r.motivo))].sort();
+  const currentSelected = motivoSelect.value;
+  motivoSelect.innerHTML = '<option value="">Todos os motivos</option>' +
+    motivosUnicos.map(m => `<option value="${m.replace(/"/g,'&quot;')}">${m}</option>`).join('');
+  if (motivosUnicos.includes(currentSelected)) motivoSelect.value = currentSelected;
+
+  document.getElementById('mcFiltroBusca').value = '';
+  document.getElementById('mcFiltroDataDe').value = '';
+  document.getElementById('mcFiltroDataAte').value = '';
+
+  renderMotivosTableBody(motivosRows);
+  section.style.display = 'block';
+}
+
+let _mesesModalRows = [];
+
+function openMesesModal(bucketIndex) {
+  const bucket = MESES_BUCKETS[bucketIndex];
+  const bucketColors = ['#E24B4A','#EF9F27','#378ADD','#185FA5','#639922'];
+  const rows = motivosRows.filter(r => r.mesesNaBase >= bucket.min && r.mesesNaBase <= bucket.max);
+  _mesesModalRows = [...rows].sort((a,b) => {
+    const da = a.dataCancelamento instanceof Date ? a.dataCancelamento : new Date(0);
+    const db = b.dataCancelamento instanceof Date ? b.dataCancelamento : new Date(0);
+    return db - da;
+  });
+
+  document.getElementById('mesesModalTitle').textContent = bucket.label;
+  document.getElementById('mesesModalIcon').style.background = bucketColors[bucketIndex] || '#888780';
+  const pill = document.getElementById('mesesModalPill');
+  pill.textContent = `${rows.length} conta${rows.length !== 1 ? 's' : ''}`;
+  document.getElementById('mesesModalSearch').value = '';
+  renderMesesModalList(_mesesModalRows);
+  document.getElementById('mesesModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('mesesModalSearch').focus(), 80);
+}
+
+function closeMesesModal(e) {
+  if (e && e.target !== document.getElementById('mesesModal') && e.type === 'click') return;
+  document.getElementById('mesesModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function filterMesesModal() {
+  const q = document.getElementById('mesesModalSearch').value.toLowerCase();
+  const filtered = q ? _mesesModalRows.filter(r => (r.conta||'').toLowerCase().includes(q) || (r.motivo||'').toLowerCase().includes(q)) : _mesesModalRows;
+  renderMesesModalList(filtered);
+}
+
+function renderMesesModalList(rows) {
+  const el = document.getElementById('mesesModalList');
+  if (!rows.length) {
+    el.innerHTML = '<div class="saude-modal-empty">Nenhuma conta encontrada.</div>';
+    return;
+  }
+  el.innerHTML = rows.map(r => {
+    const dataFmt = r.dataCancelamento instanceof Date && !isNaN(r.dataCancelamento)
+      ? r.dataCancelamento.toLocaleDateString('pt-BR') : '—';
+    return `<div class="saude-modal-item">
+      <span class="saude-modal-empresa" title="${r.conta}">${r.conta || '—'}</span>
+      <div class="saude-modal-stats">
+        <div class="saude-stat">
+          <div class="sv">${r.mesesNaBase || '—'}</div>
+          <div class="sl">Meses na base</div>
+        </div>
+        <div class="saude-stat">
+          <div class="sv" style="font-size:11px">${dataFmt}</div>
+          <div class="sl">Cancelamento</div>
+        </div>
+        <div class="saude-stat" style="min-width:110px;text-align:right">
+          <div class="sv" style="font-size:11px;color:#A32D2D">${r.motivo}</div>
+          <div class="sl">Motivo</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMotivosTableBody(rows) {
+  const tbody = document.getElementById('motivosTableBody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b6860;padding:24px">Nenhum cancelamento encontrado para o filtro selecionado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const dataFmt = r.dataCancelamento instanceof Date && !isNaN(r.dataCancelamento)
+      ? r.dataCancelamento.toLocaleDateString('pt-BR') : '—';
+    return `<tr>
+      <td>${r.conta || '—'}</td>
+      <td class="num">${dataFmt}</td>
+      <td class="num" style="text-align:right">${r.mesesNaBase || '—'}</td>
+      <td>${r.motivo}</td>
+      <td style="color:#6b6860;font-size:11px;max-width:280px;white-space:normal">${r.descricao || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterMotivosTable() {
+  const busca   = document.getElementById('mcFiltroBusca').value.toLowerCase().trim();
+  const motivo  = document.getElementById('mcFiltroMotivo').value;
+  const deStr   = document.getElementById('mcFiltroDataDe').value;
+  const ateStr  = document.getElementById('mcFiltroDataAte').value;
+  const de  = deStr  ? new Date(deStr + 'T00:00:00')  : null;
+  const ate = ateStr ? new Date(ateStr + 'T23:59:59') : null;
+
+  const filtered = motivosRows.filter(r => {
+    if (busca && !((r.conta||'').toLowerCase().includes(busca) || (r.descricao||'').toLowerCase().includes(busca))) return false;
+    if (motivo && r.motivo !== motivo) return false;
+    if (de && (!(r.dataCancelamento instanceof Date) || r.dataCancelamento < de)) return false;
+    if (ate && (!(r.dataCancelamento instanceof Date) || r.dataCancelamento > ate)) return false;
+    return true;
+  });
+
+  renderMotivosTableBody(filtered);
+}
+
+// ── Canais de WhatsApp (API Oficial vs Não Oficial) ──
+let canaisData = null;
+
+function removeCanais() {
+  canaisData = null;
+  document.getElementById('canaisInput').value = '';
+  document.getElementById('btnCanaisLabel').textContent = 'Carregar Canais';
+  document.getElementById('btnRemoveCanais').style.display = 'none';
+  document.getElementById('canaisStatus').textContent = 'Arraste ou clique para selecionar';
+  document.getElementById('dropZoneCanais').style.borderColor = '#ccc';
+  document.getElementById('canaisSection').style.display = 'none';
+  destroyChart('canais');
+}
+
+function handleCanais(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      const headers = rows[0].map(String);
+      const findIdx = name => headers.findIndex(h => normalizeName(h) === normalizeName(name));
+
+      const iParceiro   = findIdx('Parceiro');
+      const iContasAtiv = findIdx('Contas ativas');
+      const iCanaisAtiv = findIdx('Canais WhatsApp ativos');
+      const iOficial    = findIdx('Canais API Oficial');
+      const iNaoOficial = findIdx('Canais API Não Oficial');
+      const iPctOficial = findIdx('% API Oficial');
+      const iPctNao     = findIdx('% API Não Oficial');
+
+      if (iParceiro < 0 || iOficial < 0 || iNaoOficial < 0) {
+        throw new Error('Colunas "Parceiro", "Canais API Oficial" e/ou "Canais API Não Oficial" não encontradas na planilha.');
+      }
+
+      canaisData = rows.slice(1).filter(r => r[iParceiro]).map(r => ({
+        parceiro:      String(r[iParceiro] || ''),
+        contasAtivas:  parseFloat(r[iContasAtiv]) || 0,
+        canaisAtivos:  parseFloat(r[iCanaisAtiv]) || 0,
+        oficial:       parseFloat(r[iOficial]) || 0,
+        naoOficial:    parseFloat(r[iNaoOficial]) || 0,
+        pctOficial:    iPctOficial >= 0 ? parseFloat(r[iPctOficial]) || 0 : null,
+        pctNaoOficial: iPctNao >= 0 ? parseFloat(r[iPctNao]) || 0 : null,
+      }));
+
+      document.getElementById('canaisStatus').textContent = `✓ ${file.name} — ${canaisData.length} linha${canaisData.length !== 1 ? 's' : ''}`;
+      document.getElementById('dropZoneCanais').style.borderColor = '#378ADD';
+      document.getElementById('btnCanaisLabel').textContent = 'Trocar Canais';
+      document.getElementById('btnRemoveCanais').style.display = '';
+
+      if (document.getElementById('dashboard').style.display !== 'none') {
+        const parceiro = document.getElementById('headerParceiro').textContent;
+        renderCanais(parceiro);
+      }
+    } catch(err) {
+      document.getElementById('canaisStatus').textContent = 'Erro ao ler Excel: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderCanais(parceiroExcel) {
+  const section = document.getElementById('canaisSection');
+  if (!canaisData || !parceiroExcel) { section.style.display = 'none'; return; }
+
+  const normExcel  = normalizeName(parceiroExcel);
+  const wordsExcel = normExcel.split(' ').filter(w => w.length > 3);
+
+  const scored = canaisData.map(r => ({ r, s: matchScoreGeneric(r.parceiro, normExcel, wordsExcel) })).filter(x => x.s > 0);
+  if (!scored.length) { section.style.display = 'none'; return; }
+  const bestScore = Math.max(...scored.map(x => x.s));
+  const candidates = scored.filter(x => x.s === bestScore).map(x => x.r);
+  const row = candidates[0];
+
+  const oficial = row.oficial;
+  const naoOficial = row.naoOficial;
+  const total = oficial + naoOficial;
+  const pctOficial = row.pctOficial !== null ? row.pctOficial : (total ? oficial / total : 0);
+  const pctNaoOficial = row.pctNaoOficial !== null ? row.pctNaoOficial : (total ? naoOficial / total : 0);
+
+  destroyChart('canais');
+  charts.canais = new Chart(document.getElementById('cCanais'), {
+    type: 'doughnut',
+    data: {
+      labels: ['API Oficial', 'API Não Oficial'],
+      datasets: [{
+        data: [oficial, naoOficial],
+        backgroundColor: ['#639922', '#EF9F27'],
+        hoverBackgroundColor: ['#639922cc', '#EF9F27cc'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position:'bottom', labels:{ boxWidth:10, font:{ size:11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const pct = ctx.dataIndex === 0 ? pctOficial : pctNaoOficial;
+              return ` ${ctx.label}: ${ctx.parsed} canais (${Math.round(pct*100)}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  section.style.display = 'block';
 }
 
 // ── Helpers de parse de mês ──
@@ -1239,7 +1775,7 @@ async function generatePDF() {
 
   const headerActions = document.querySelector('.header-actions');
   const pagination    = document.getElementById('pagination');
-  const filterRow     = document.querySelector('.table-header > div');
+  const filterRow     = document.querySelector('#detalheTableHeader > div');
   headerActions.style.visibility = 'hidden';
 
   try {
@@ -1467,8 +2003,48 @@ async function generatePDF() {
       }
     }
 
+    const motivosEl = document.getElementById('motivosSection');
+    if (motivosEl && motivosEl.style.display !== 'none') {
+      curY = addLabel('Motivos de Cancelamento', curY);
+      for (const card of motivosEl.querySelectorAll('.chart-card')) {
+        const captureCard = await capture(card);
+        if (!captureCard) continue;
+        const {imgH} = captureCard;
+        if (curY + imgH > USABLE_H || (USABLE_H - curY < 60 && imgH > 60)) {
+          addFooter(); newPage(); curY = PAD;
+        }
+        curY = await addEl(card, curY);
+      }
+      const motivosTableCard = document.getElementById('motivosTableCard');
+      if (motivosTableCard) {
+        const motivosFilterRow = document.getElementById('motivosFilterRow');
+        if (motivosFilterRow) motivosFilterRow.style.display = 'none';
+        const captureTable = await capture(motivosTableCard);
+        if (captureTable) {
+          const {imgH} = captureTable;
+          if (curY + imgH > USABLE_H) { addFooter(); newPage(); curY = PAD; }
+          curY = await addEl(motivosTableCard, curY);
+        }
+        if (motivosFilterRow) motivosFilterRow.style.display = '';
+      }
+    }
+
+    const canaisEl = document.getElementById('canaisSection');
+    if (canaisEl && canaisEl.style.display !== 'none') {
+      curY = addLabel('Canais de WhatsApp', curY);
+      for (const card of canaisEl.querySelectorAll('.chart-card')) {
+        const captureCard = await capture(card);
+        if (!captureCard) continue;
+        const {imgH} = captureCard;
+        if (curY + imgH > USABLE_H || (USABLE_H - curY < 60 && imgH > 60)) {
+          addFooter(); newPage(); curY = PAD;
+        }
+        curY = await addEl(card, curY);
+      }
+    }
+
     curY = addLabel('Análise por Saúde', curY);
-    for (const card of document.querySelectorAll('.chart-card')) {
+    for (const card of document.querySelectorAll('#saudeChartsGrid .chart-card')) {
       const captureCard = await capture(card);
       if (!captureCard) continue;
       const {imgH} = captureCard;
@@ -1632,7 +2208,7 @@ function renderSaudeModalList(rows) {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeSaudeModal();
+  if (e.key === 'Escape') { closeSaudeModal(); closeMesesModal(); }
 });
 
 const dz = document.getElementById('dropZone');
